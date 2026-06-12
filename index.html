@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Broken Universe</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <div id="game"></div>
+
+    <div id="hud" style="display: none">
+      <div id="topbar">
+        <span id="timer">15:00</span>
+        <div id="pocstrip"></div>
+        <span id="cutoff"></span>
+      </div>
+      <div id="squadbar"></div>
+      <div id="reserves">
+        <div id="reserve-buttons"></div>
+        <div id="reserve-info"></div>
+      </div>
+      <div id="selbox"></div>
+      <div id="endscreen">
+        <h1 id="end-title"></h1>
+        <div id="end-sub"></div>
+        <button id="btn-menu">Return to Command</button>
+      </div>
+      <div id="help">left-drag select · right-click move/attack · A+click attack-move · S stop · Ctrl+1-9 groups · arrows/middle-drag pan · wheel zoom · space center</div>
+    </div>
+
+    <div id="menu">
+      <div class="menu-card">
+        <h1>BROKEN UNIVERSE</h1>
+        <p class="tagline">Assault on Ashfall Crossing</p>
+
+        <fieldset>
+          <legend>Your side</legend>
+          <label><input type="radio" name="side" value="attacker" checked /> Attacker — capture every Point of Contention</label>
+          <label><input type="radio" name="side" value="defender" /> Defender — hold out for 15 minutes</label>
+          <label><input type="radio" name="side" value="spectate" /> Spectate an all-AI battle</label>
+        </fieldset>
+
+        <div class="row">
+          <label>Allied AI commanders
+            <input id="opt-allies" type="number" min="0" max="8" value="3" />
+          </label>
+          <label>Enemy AI commanders
+            <input id="opt-enemies" type="number" min="1" max="8" value="4" />
+          </label>
+        </div>
+        <div class="row">
+          <label>AI difficulty
+            <select id="opt-difficulty">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <label>Seed (blank = random)
+            <input id="opt-seed" type="text" placeholder="random" />
+          </label>
+        </div>
+
+        <button id="btn-start">Deploy</button>
+        <p class="hint">You command one squad. Allied commanders fight beside you; the enemy team is fully AI. Capture PoCs by holding them uncontested.</p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

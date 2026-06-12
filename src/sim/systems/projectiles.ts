@@ -1,6 +1,6 @@
 import { TICKS_PER_SECOND } from '../constants';
 import { computeDamage } from '../damage';
-import { dist, domainOf, type Projectile, type World } from '../types';
+import { type Projectile, type World, dist, domainOf } from '../types';
 import { applyDamage } from './combat';
 
 const DT = 1 / TICKS_PER_SECOND;

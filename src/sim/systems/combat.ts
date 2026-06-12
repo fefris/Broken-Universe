@@ -1,7 +1,7 @@
 import type { FireMode, ResolvedWeapon } from '../../content/schema';
 import { TARGETING_INTERVAL, TICKS_PER_SECOND } from '../constants';
 import { computeDamage } from '../damage';
-import { dist, domainOf, type UnitState, type World } from '../types';
+import { type UnitState, type World, dist, domainOf } from '../types';
 
 const DT = 1 / TICKS_PER_SECOND;
 /** Targets further than this multiple of view range are dropped. */

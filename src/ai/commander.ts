@@ -1,17 +1,17 @@
 import type { Command } from '../sim/commands';
-import { createRng, type Rng } from '../sim/rng';
 import { spawnZoneFor } from '../sim/map/maps';
+import { type Rng, createRng } from '../sim/rng';
 import { bestRangeAgainst } from '../sim/systems/movement';
 import { canDeploy } from '../sim/systems/reserves';
 import {
   ATTACKER,
   type Commander,
   type CommanderIntent,
-  dist,
-  domainOf,
   type UnitState,
   type Vec2,
   type World,
+  dist,
+  domainOf,
 } from '../sim/types';
 import type { DifficultyProfile } from './difficulty';
 
@@ -55,7 +55,7 @@ export class AICommander {
     const commands: Command[] = [];
     const myUnits = commander.squad
       .map((id) => world.units[id])
-      .filter((u): u is UnitState => u !== undefined && u.alive);
+      .filter((u): u is UnitState => u?.alive === true);
 
     // Micro runs on a fast cadence, staggered per commander.
     if ((world.tick + this.commanderId * 3) % 5 === 0 && myUnits.length > 0) {
@@ -141,16 +141,31 @@ export class AICommander {
       }
       score *= 1 + this.rng.range(-this.profile.scoreNoise, this.profile.scoreNoise);
 
+      // Attackers mass at a staging point short of a defended PoC instead of
+      // trickling in. Staged units sit inside the influence radius, so once
+      // enough force gathers, `friendly` overtakes `enemy` and the goal
+      // flips to the PoC itself.
+      let goal = { ...poc.pos };
+      if (isAttacker && enemy > friendly * 0.9) {
+        const zone = spawnZoneFor(world.spawnZones, commander.team);
+        const dx = zone.center.x - poc.pos.x;
+        const dy = zone.center.y - poc.pos.y;
+        const d = Math.hypot(dx, dy);
+        if (d > 1) {
+          const stage = poc.radius + 22;
+          goal = { x: poc.pos.x + (dx / d) * stage, y: poc.pos.y + (dy / d) * stage };
+        }
+      }
+
       candidates.push({
         intent: { kind: isAttacker ? 'attackPoc' : 'defendPoc', pocId: poc.id },
-        goal: { ...poc.pos },
+        goal,
         score,
       });
     }
 
     // Retreat when mauled and locally outgunned.
-    const avgHp =
-      myUnits.reduce((sum, u) => sum + u.hp / u.stats.maxHealth, 0) / myUnits.length;
+    const avgHp = myUnits.reduce((sum, u) => sum + u.hp / u.stats.maxHealth, 0) / myUnits.length;
     if (avgHp < 0.35) {
       let localFriendly = 0;
       let localEnemy = 0;
@@ -160,10 +175,21 @@ export class AICommander {
         else localEnemy += combatPower(u);
       }
       if (localEnemy > localFriendly * 1.2) {
-        const zone = spawnZoneFor(world.spawnZones, commander.team);
+        // Fall back to the nearest friendly-held PoC; only run all the way
+        // home when nothing is held (a death march never rejoins the fight).
+        const owned = world.pocs.filter((p) => p.owner === commander.team);
+        let goal = { ...spawnZoneFor(world.spawnZones, commander.team).center };
+        let bestD = Number.POSITIVE_INFINITY;
+        for (const p of owned) {
+          const d = dist(centroid, p.pos);
+          if (d < bestD) {
+            bestD = d;
+            goal = { ...p.pos };
+          }
+        }
         candidates.push({
           intent: { kind: 'retreat', pocId: -1 },
-          goal: { ...zone.center },
+          goal,
           score: 150,
         });
       }

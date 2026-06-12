@@ -3,9 +3,9 @@ import { DIFFICULTIES, type DifficultyLevel } from '../ai/difficulty';
 import type { Command } from '../sim/commands';
 import type { SimEvent } from '../sim/events';
 import { deriveSeed } from '../sim/rng';
+import type { World } from '../sim/types';
 import type { BattleConfig } from '../sim/world';
 import { createBattle, tick } from '../sim/world';
-import type { World } from '../sim/types';
 
 /**
  * Owns the world plus its AI controllers and the player's command queue.

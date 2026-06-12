@@ -67,7 +67,13 @@ describe('design constraint validation', () => {
     // variant by loading the hatchling with the heaviest bio-compatible kit.
     const issues = validateDesign(
       design(
-        ['eng_pulse_heart', 'ps_bio_sac', 'comp_ganglion', 'wpn_caustic_spit', 'org_knitting_gland'],
+        [
+          'eng_pulse_heart',
+          'ps_bio_sac',
+          'comp_ganglion',
+          'wpn_caustic_spit',
+          'org_knitting_gland',
+        ],
         'ch_hatchling',
       ),
       db,

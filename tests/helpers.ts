@@ -21,9 +21,7 @@ export function openMapDef(
   return {
     name: 'Test Range',
     map: new Tilemap(cols, rows, tiles),
-    pocs: pocs ?? [
-      { label: 'Alpha', pos: { x: w / 2, y: h / 2 }, radius: 10, captureSeconds: 10 },
-    ],
+    pocs: pocs ?? [{ label: 'Alpha', pos: { x: w / 2, y: h / 2 }, radius: 10, captureSeconds: 10 }],
     spawnZones: spawnZones ?? [
       { team: ATTACKER, center: { x: 20, y: h / 2 }, radius: 12 },
       { team: DEFENDER, center: { x: w - 20, y: h / 2 }, radius: 12 },

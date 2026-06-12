@@ -19,7 +19,12 @@ function pocBattle() {
   return { world, poc: world.pocs[0]! };
 }
 
-function teleport(world: ReturnType<typeof pocBattle>['world'], unitId: number, x: number, y: number) {
+function teleport(
+  world: ReturnType<typeof pocBattle>['world'],
+  unitId: number,
+  x: number,
+  y: number,
+) {
   const u = world.units[unitId]!;
   u.pos = { x, y };
   u.prevPos = { x, y };

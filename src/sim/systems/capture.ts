@@ -1,5 +1,5 @@
 import { CAPTURE_DECAY_MULT } from '../constants';
-import { ATTACKER, dist, type World } from '../types';
+import { ATTACKER, type World, dist } from '../types';
 
 const scratchIds: number[] = [];
 

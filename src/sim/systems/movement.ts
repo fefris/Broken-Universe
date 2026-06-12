@@ -1,5 +1,5 @@
 import { TICKS_PER_SECOND } from '../constants';
-import { dist, domainOf, type UnitState, type Vec2, type World } from '../types';
+import { type UnitState, type Vec2, type World, dist, domainOf } from '../types';
 
 const DT = 1 / TICKS_PER_SECOND;
 const WAYPOINT_REACHED = 2.0;

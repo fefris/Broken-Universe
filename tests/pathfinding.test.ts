@@ -50,12 +50,7 @@ describe('A* pathfinding', () => {
   });
 
   it('retargets goals inside walls to the nearest open tile', () => {
-    const map = mapFromAscii([
-      '..........',
-      '....##....',
-      '....##....',
-      '..........',
-    ]);
+    const map = mapFromAscii(['..........', '....##....', '....##....', '..........']);
     const path = findPath(map, at(1, 1), at(4, 1));
     expect(path).not.toBeNull();
     const last = path![path!.length - 1]!;
@@ -63,11 +58,7 @@ describe('A* pathfinding', () => {
   });
 
   it('prefers open ground over slow terrain when it is cheap to go around', () => {
-    const map = mapFromAscii([
-      '..........',
-      '~~~~~~~~..',
-      '..........',
-    ]);
+    const map = mapFromAscii(['..........', '~~~~~~~~..', '..........']);
     // Crossing the ash band costs double; the detour through column 8-9 is cheaper.
     const path = findPath(map, at(0, 0), at(0, 2));
     expect(path).not.toBeNull();
@@ -76,11 +67,7 @@ describe('A* pathfinding', () => {
 
 describe('line of sight', () => {
   it('blocks LOS through walls and passes in the open', () => {
-    const map = mapFromAscii([
-      '..........',
-      '....#.....',
-      '..........',
-    ]);
+    const map = mapFromAscii(['..........', '....#.....', '..........']);
     expect(map.los(at(2, 1), at(7, 1))).toBe(false);
     expect(map.los(at(2, 0), at(7, 0))).toBe(true);
     expect(map.los(at(2, 2), at(7, 2))).toBe(true);

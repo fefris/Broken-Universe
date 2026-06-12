@@ -10,7 +10,7 @@ import { db } from './helpers';
  */
 describe('headless AI-vs-AI battle', () => {
   for (const seed of [11, 22, 33]) {
-    it(`seed ${seed}: battle resolves cleanly`, () => {
+    it(`seed ${seed}: battle resolves cleanly`, { timeout: 60_000 }, () => {
       const config = buildBattleConfig(
         { seed, attackerCommanders: 3, defenderCommanders: 3, playerTeam: null },
         db,

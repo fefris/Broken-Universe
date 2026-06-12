@@ -128,7 +128,11 @@ export const MiscSchema = PartBaseSchema.extend({
   kind: z.literal('misc'),
   effect: z.discriminatedUnion('type', [
     /** Heals a nearby damaged ally (Mender). */
-    z.object({ type: z.literal('repair'), hps: z.number().positive(), range: z.number().positive() }),
+    z.object({
+      type: z.literal('repair'),
+      hps: z.number().positive(),
+      range: z.number().positive(),
+    }),
     /** Passive self-regeneration (bioforms). */
     z.object({ type: z.literal('regen'), hps: z.number().positive() }),
   ]),

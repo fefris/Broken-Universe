@@ -1,7 +1,7 @@
 import type { ResolvedUnit } from '../content/schema';
+import type { SimEvent } from './events';
 import type { Tilemap } from './map/tilemap';
 import type { Rng } from './rng';
-import type { SimEvent } from './events';
 import type { SpatialGrid } from './spatial';
 
 export interface Vec2 {

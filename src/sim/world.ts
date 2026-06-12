@@ -1,16 +1,12 @@
 import type { ResolvedUnit } from '../content/schema';
 import type { Command } from './commands';
-import {
-  BATTLE_DURATION_TICKS,
-  REINFORCE_CUTOFF_TICKS,
-  secondsToTicks,
-} from './constants';
+import { BATTLE_DURATION_TICKS, REINFORCE_CUTOFF_TICKS, secondsToTicks } from './constants';
 import type { MapDef } from './map/maps';
 import { findPath } from './map/pathfinding';
 import { createRng } from './rng';
 import { SpatialGrid } from './spatial';
-import { combatSystem } from './systems/combat';
 import { captureSystem } from './systems/capture';
+import { combatSystem } from './systems/combat';
 import { movementSystem } from './systems/movement';
 import { projectileSystem } from './systems/projectiles';
 import { deployReserve, spawnUnit } from './systems/reserves';
