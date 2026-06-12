@@ -23,6 +23,7 @@ function detonate(world: World, proj: Projectile): void {
       world,
       unit,
       computeDamage(proj.damage, proj.damageType, unit.stats.armor, unit.stats.armorClass),
+      proj.sourceId,
     );
   }
 }
@@ -43,6 +44,7 @@ export function projectileSystem(world: World): void {
           world,
           target,
           computeDamage(proj.damage, proj.damageType, target.stats.armor, target.stats.armorClass),
+          proj.sourceId,
         );
         world.events.push({ type: 'projectileDetonated', pos: { ...dest }, splashRadius: 0 });
         continue;

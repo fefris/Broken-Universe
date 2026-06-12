@@ -4,7 +4,7 @@ import { validateDesign } from '../src/sim/unitStats';
 import { db } from './helpers';
 
 function design(partIds: string[], chassisId = 'ch_mote'): UnitDesign {
-  return { id: 'test', name: 'Test', chassisId, partIds, cost: 100 };
+  return { id: 'test', name: 'Test', chassisId, partIds };
 }
 
 const errorsOf = (d: UnitDesign) =>

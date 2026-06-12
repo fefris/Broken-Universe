@@ -44,6 +44,8 @@ export const ChassisSchema = z.object({
   /** Budget for the summed space of fitted parts (L). */
   maxSpace: z.number().positive(),
   slots: z.number().int().positive(),
+  /** Credits for the bare hull. */
+  cost: z.number().min(0),
 });
 export type ChassisDef = z.infer<typeof ChassisSchema>;
 
@@ -56,6 +58,8 @@ const PartBaseSchema = z.object({
   complexity: z.number().min(0),
   /** Passive energy drain in kJ/s while the unit lives. */
   passiveDrain: z.number().min(0),
+  /** Credits. */
+  cost: z.number().min(0),
 });
 
 export const FireModeSchema = z.object({
@@ -161,7 +165,6 @@ export const UnitDesignSchema = z.object({
   name: z.string().min(1),
   chassisId: z.string().min(1),
   partIds: z.array(z.string().min(1)).min(1),
-  cost: z.number().positive(),
 });
 export type UnitDesign = z.infer<typeof UnitDesignSchema>;
 

@@ -1,27 +1,52 @@
 [
   {
     "id": "eng_vesta_compact", "name": "Vesta Compact Drive", "kind": "engine", "techLevel": 2,
-    "weight": 50, "space": 2, "complexity": 6, "passiveDrain": 50,
+    "weight": 50, "space": 2, "complexity": 6, "passiveDrain": 50, "cost": 20,
     "power": 600, "healthBonus": 450, "biodrive": false
   },
   {
+    "id": "eng_vesta_compact2", "name": "Vesta Compact Drive II", "kind": "engine", "techLevel": 12,
+    "weight": 50, "space": 2, "complexity": 8, "passiveDrain": 50, "cost": 45,
+    "power": 700, "healthBonus": 700, "biodrive": false
+  },
+  {
     "id": "eng_vesta_heavy", "name": "Vesta Siegeworks Drive", "kind": "engine", "techLevel": 8,
-    "weight": 120, "space": 3, "complexity": 10, "passiveDrain": 50,
+    "weight": 120, "space": 3, "complexity": 10, "passiveDrain": 50, "cost": 60,
     "power": 1400, "healthBonus": 1100, "biodrive": false
   },
   {
+    "id": "eng_vesta_heavy2", "name": "Vesta Siegeworks Drive II", "kind": "engine", "techLevel": 18,
+    "weight": 120, "space": 3, "complexity": 12, "passiveDrain": 50, "cost": 110,
+    "power": 1600, "healthBonus": 1500, "biodrive": false
+  },
+  {
     "id": "eng_mirov_medium", "name": "Mirov Tractive Drive", "kind": "engine", "techLevel": 5,
-    "weight": 60, "space": 2, "complexity": 8, "passiveDrain": 50,
+    "weight": 60, "space": 2, "complexity": 8, "passiveDrain": 50, "cost": 40,
     "power": 1000, "healthBonus": 600, "biodrive": false
   },
   {
+    "id": "eng_mirov_medium2", "name": "Mirov Tractive Drive II", "kind": "engine", "techLevel": 15,
+    "weight": 60, "space": 2, "complexity": 10, "passiveDrain": 50, "cost": 80,
+    "power": 1150, "healthBonus": 850, "biodrive": false
+  },
+  {
     "id": "eng_kestrel_lift", "name": "Kestrel Liftjet", "kind": "engine", "techLevel": 6,
-    "weight": 40, "space": 2, "complexity": 8, "passiveDrain": 50,
+    "weight": 40, "space": 2, "complexity": 8, "passiveDrain": 50, "cost": 45,
     "power": 900, "healthBonus": 300, "biodrive": false
   },
   {
+    "id": "eng_kestrel_lift2", "name": "Kestrel Liftjet II", "kind": "engine", "techLevel": 16,
+    "weight": 40, "space": 2, "complexity": 10, "passiveDrain": 50, "cost": 85,
+    "power": 1000, "healthBonus": 450, "biodrive": false
+  },
+  {
     "id": "eng_pulse_heart", "name": "Pulsing Heart", "kind": "engine", "techLevel": 2,
-    "weight": 20, "space": 1, "complexity": 2, "passiveDrain": 10,
+    "weight": 20, "space": 1, "complexity": 2, "passiveDrain": 10, "cost": 15,
     "power": 300, "healthBonus": 400, "biodrive": true
+  },
+  {
+    "id": "eng_pulse_heart2", "name": "Thrumming Heart", "kind": "engine", "techLevel": 12,
+    "weight": 20, "space": 1, "complexity": 3, "passiveDrain": 10, "cost": 35,
+    "power": 380, "healthBonus": 650, "biodrive": true
   }
 ]

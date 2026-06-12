@@ -1,12 +1,22 @@
 [
   {
     "id": "tool_mending_arc", "name": "Mirov Mending Arc", "kind": "misc", "techLevel": 4,
-    "weight": 10, "space": 2, "complexity": 8, "passiveDrain": 0,
+    "weight": 10, "space": 2, "complexity": 8, "passiveDrain": 0, "cost": 105,
     "effect": { "type": "repair", "hps": 60, "range": 8 }
   },
   {
+    "id": "tool_mending_arc2", "name": "Mirov Mending Arc II", "kind": "misc", "techLevel": 16,
+    "weight": 11, "space": 2, "complexity": 10, "passiveDrain": 0, "cost": 180,
+    "effect": { "type": "repair", "hps": 85, "range": 9 }
+  },
+  {
     "id": "org_knitting_gland", "name": "Knitting Gland", "kind": "misc", "techLevel": 2,
-    "weight": 3, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 3, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 15,
     "effect": { "type": "regen", "hps": 8 }
+  },
+  {
+    "id": "org_knitting_gland2", "name": "Weaver Gland", "kind": "misc", "techLevel": 14,
+    "weight": 4, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 35,
+    "effect": { "type": "regen", "hps": 14 }
   }
 ]

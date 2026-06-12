@@ -1,22 +1,47 @@
 [
   {
     "id": "arm_light_mesh", "name": "Mirov Weave Mesh", "kind": "armor", "techLevel": 2,
-    "weight": 5, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 5, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 10,
     "armor": 2, "healthBonus": 100, "armorClass": "deflective"
   },
   {
     "id": "arm_flak_vest", "name": "Mirov Flak Jacket", "kind": "armor", "techLevel": 2,
-    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 15,
     "armor": 4, "healthBonus": 200, "armorClass": "deflective"
   },
   {
+    "id": "arm_flak_vest2", "name": "Mirov Flak Harness", "kind": "armor", "techLevel": 12,
+    "weight": 9, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 30,
+    "armor": 7, "healthBonus": 350, "armorClass": "deflective"
+  },
+  {
     "id": "arm_composite_plate", "name": "Vesta Composite Plate", "kind": "armor", "techLevel": 6,
-    "weight": 25, "space": 2, "complexity": 0, "passiveDrain": 0,
+    "weight": 25, "space": 2, "complexity": 0, "passiveDrain": 0, "cost": 35,
     "armor": 20, "healthBonus": 800, "armorClass": "ablative"
   },
   {
+    "id": "arm_composite_plate2", "name": "Vesta Composite Plate II", "kind": "armor", "techLevel": 16,
+    "weight": 26, "space": 2, "complexity": 0, "passiveDrain": 0, "cost": 65,
+    "armor": 26, "healthBonus": 1100, "armorClass": "ablative"
+  },
+  {
     "id": "arm_warden_plate", "name": "Vesta Warden Plate", "kind": "armor", "techLevel": 10,
-    "weight": 40, "space": 2, "complexity": 0, "passiveDrain": 0,
+    "weight": 40, "space": 2, "complexity": 0, "passiveDrain": 0, "cost": 60,
     "armor": 28, "healthBonus": 1500, "armorClass": "ablative"
+  },
+  {
+    "id": "arm_warden_plate2", "name": "Vesta Warden Plate II", "kind": "armor", "techLevel": 22,
+    "weight": 42, "space": 2, "complexity": 0, "passiveDrain": 0, "cost": 110,
+    "armor": 36, "healthBonus": 2000, "armorClass": "ablative"
+  },
+  {
+    "id": "arm_reflec_weave", "name": "Halcyon Reflec Weave", "kind": "armor", "techLevel": 18,
+    "weight": 12, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 60,
+    "armor": 12, "healthBonus": 500, "armorClass": "reflec"
+  },
+  {
+    "id": "arm_chitin", "name": "Chitin Carapace", "kind": "armor", "techLevel": 10,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 25,
+    "armor": 8, "healthBonus": 600, "armorClass": "organic"
   }
 ]

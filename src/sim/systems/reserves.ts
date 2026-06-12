@@ -52,6 +52,8 @@ export function spawnUnit(
     weaponCooldowns: stats.weapons.map(() => 0),
     microGoal: null,
     microUntilTick: 0,
+    damageDealt: 0,
+    kills: 0,
   };
   world.units.push(unit);
   commander.squad.push(unit.id);

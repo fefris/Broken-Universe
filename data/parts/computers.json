@@ -1,17 +1,27 @@
 [
   {
     "id": "comp_basic", "name": "Halcyon Fieldbrain", "kind": "computer", "techLevel": 2,
-    "weight": 5, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 5, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 5,
     "maxComplexity": 30
   },
   {
     "id": "comp_military", "name": "Halcyon Warbrain", "kind": "computer", "techLevel": 8,
-    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 20,
     "maxComplexity": 60
   },
   {
+    "id": "comp_military2", "name": "Halcyon Warbrain Prime", "kind": "computer", "techLevel": 18,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 40,
+    "maxComplexity": 80
+  },
+  {
     "id": "comp_ganglion", "name": "Ganglion Cluster", "kind": "computer", "techLevel": 2,
-    "weight": 2, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 2, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 5,
     "maxComplexity": 20
+  },
+  {
+    "id": "comp_ganglion2", "name": "Ganglion Lattice", "kind": "computer", "techLevel": 12,
+    "weight": 2, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 15,
+    "maxComplexity": 35
   }
 ]

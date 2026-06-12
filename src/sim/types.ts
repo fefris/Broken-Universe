@@ -49,6 +49,9 @@ export interface UnitState {
   /** Kiting override: while tick < microUntilTick, steer to microGoal. */
   microGoal: Vec2 | null;
   microUntilTick: number;
+  /** Battle stats for post-battle XP. */
+  damageDealt: number;
+  kills: number;
 }
 
 export type IntentKind = 'attackPoc' | 'defendPoc' | 'retreat' | 'rally';
@@ -94,6 +97,8 @@ export interface Projectile {
   damage: number;
   damageType: ResolvedUnit['weapons'][number]['damageType'];
   sourceTeam: Team;
+  /** Firing unit id, for damage attribution (may be dead by impact). */
+  sourceId: number;
   /** Which locomotion domain the warhead harms. */
   targetDomain: 'ground' | 'air';
   splashRadius: number;

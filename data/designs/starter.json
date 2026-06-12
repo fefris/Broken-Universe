@@ -1,50 +1,54 @@
 [
   {
-    "id": "d_mote", "name": "Mote", "chassisId": "ch_mote", "cost": 100,
+    "id": "d_mote", "name": "Mote", "chassisId": "ch_mote",
     "partIds": ["eng_vesta_compact", "ps_vesta_cell", "comp_basic", "arm_flak_vest", "wpn_vf2_scattergun"]
   },
   {
-    "id": "d_courier", "name": "Courier", "chassisId": "ch_courier", "cost": 120,
+    "id": "d_courier", "name": "Courier", "chassisId": "ch_courier",
     "partIds": ["eng_vesta_compact", "ps_vesta_cell", "comp_basic", "arm_light_mesh", "sens_recon", "wpn_vf1_carbine"]
   },
   {
-    "id": "d_bulwark", "name": "Bulwark", "chassisId": "ch_bulwark", "cost": 260,
+    "id": "d_bulwark", "name": "Bulwark", "chassisId": "ch_bulwark",
     "partIds": ["eng_vesta_heavy", "ps_sump_reactor", "comp_basic", "arm_composite_plate", "wpn_lance_array"]
   },
   {
-    "id": "d_stinger", "name": "Stinger", "chassisId": "ch_stinger", "cost": 160,
+    "id": "d_stinger", "name": "Stinger", "chassisId": "ch_stinger",
     "partIds": ["eng_vesta_compact", "ps_vesta_cell", "comp_basic", "arm_light_mesh", "wpn_skydart_rack"]
   },
   {
-    "id": "d_mender", "name": "Mender", "chassisId": "ch_mender", "cost": 200,
+    "id": "d_mender", "name": "Mender", "chassisId": "ch_mender",
     "partIds": ["eng_vesta_compact", "ps_mirov_cell", "comp_basic", "arm_light_mesh", "tool_mending_arc"]
   },
   {
-    "id": "d_dustdevil", "name": "Dustdevil", "chassisId": "ch_dustdevil", "cost": 240,
+    "id": "d_dustdevil", "name": "Dustdevil", "chassisId": "ch_dustdevil",
     "partIds": ["eng_mirov_medium", "ps_vesta_cell", "comp_basic", "arm_light_mesh", "wpn_dust_repeater"]
   },
   {
-    "id": "d_mastodon", "name": "Mastodon", "chassisId": "ch_mastodon", "cost": 420,
+    "id": "d_mastodon", "name": "Mastodon", "chassisId": "ch_mastodon",
     "partIds": ["eng_vesta_heavy", "ps_sump_reactor", "comp_military", "arm_warden_plate", "wpn_vf88_bombard"]
   },
   {
-    "id": "d_longarm", "name": "Longarm", "chassisId": "ch_longarm", "cost": 380,
+    "id": "d_longarm", "name": "Longarm", "chassisId": "ch_longarm",
     "partIds": ["eng_mirov_medium", "ps_sump_reactor_xl", "comp_military", "sens_longwatch", "wpn_arc_lobber"]
   },
   {
-    "id": "d_skyspike", "name": "Skyspike", "chassisId": "ch_skyspike", "cost": 280,
+    "id": "d_skyspike", "name": "Skyspike", "chassisId": "ch_skyspike",
     "partIds": ["eng_mirov_medium", "ps_vesta_cell", "comp_basic", "arm_flak_vest", "sens_longwatch", "wpn_flakstorm"]
   },
   {
-    "id": "d_mistral", "name": "Mistral", "chassisId": "ch_mistral", "cost": 300,
+    "id": "d_mistral", "name": "Mistral", "chassisId": "ch_mistral",
     "partIds": ["eng_kestrel_lift", "ps_aphelion_cell", "comp_basic", "wpn_talon_pods"]
   },
   {
-    "id": "d_monsoon", "name": "Monsoon", "chassisId": "ch_monsoon", "cost": 360,
+    "id": "d_monsoon", "name": "Monsoon", "chassisId": "ch_monsoon",
     "partIds": ["eng_kestrel_lift", "ps_sump_reactor", "comp_basic", "arm_light_mesh", "wpn_tempest_bay"]
   },
   {
-    "id": "d_hatchling", "name": "Hatchling", "chassisId": "ch_hatchling", "cost": 90,
+    "id": "d_hatchling", "name": "Hatchling", "chassisId": "ch_hatchling",
     "partIds": ["eng_pulse_heart", "ps_bio_sac", "comp_ganglion", "wpn_caustic_spit", "org_knitting_gland"]
+  },
+  {
+    "id": "d_broodling", "name": "Broodling", "chassisId": "ch_hatchling",
+    "partIds": ["eng_pulse_heart2", "ps_bio_sac", "comp_ganglion2", "wpn_virulent_spit", "org_knitting_gland2"]
   }
 ]

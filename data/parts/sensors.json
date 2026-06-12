@@ -1,12 +1,22 @@
 [
   {
     "id": "sens_recon", "name": "Halcyon Farsight Array", "kind": "sensor", "techLevel": 4,
-    "weight": 5, "space": 1, "complexity": 4, "passiveDrain": 0,
+    "weight": 5, "space": 1, "complexity": 4, "passiveDrain": 0, "cost": 15,
     "viewBonus": 5, "rangeBonus": 2
   },
   {
+    "id": "sens_recon2", "name": "Halcyon Farsight Array II", "kind": "sensor", "techLevel": 14,
+    "weight": 5, "space": 1, "complexity": 5, "passiveDrain": 0, "cost": 30,
+    "viewBonus": 7, "rangeBonus": 3
+  },
+  {
     "id": "sens_longwatch", "name": "Halcyon Longwatch Array", "kind": "sensor", "techLevel": 8,
-    "weight": 6, "space": 1, "complexity": 5, "passiveDrain": 0,
+    "weight": 6, "space": 1, "complexity": 5, "passiveDrain": 0, "cost": 25,
     "viewBonus": 4, "rangeBonus": 4
+  },
+  {
+    "id": "sens_longwatch2", "name": "Halcyon Longwatch Array II", "kind": "sensor", "techLevel": 20,
+    "weight": 6, "space": 1, "complexity": 6, "passiveDrain": 0, "cost": 50,
+    "viewBonus": 6, "rangeBonus": 6
   }
 ]

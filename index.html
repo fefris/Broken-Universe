@@ -24,7 +24,7 @@
       <div id="endscreen">
         <h1 id="end-title"></h1>
         <div id="end-sub"></div>
-        <button id="btn-menu">Return to Command</button>
+        <button id="btn-menu">Continue</button>
       </div>
       <div id="help">left-drag select · right-click move/attack · A+click attack-move · S stop · Ctrl+1-9 groups · arrows/middle-drag pan · wheel zoom · space center</div>
     </div>
@@ -32,40 +32,49 @@
     <div id="menu">
       <div class="menu-card">
         <h1>BROKEN UNIVERSE</h1>
-        <p class="tagline">Assault on Ashfall Crossing</p>
+        <p class="tagline">The war for Calderis</p>
 
-        <fieldset>
-          <legend>Your side</legend>
-          <label><input type="radio" name="side" value="attacker" checked /> Attacker — capture every Point of Contention</label>
-          <label><input type="radio" name="side" value="defender" /> Defender — hold out for 15 minutes</label>
-          <label><input type="radio" name="side" value="spectate" /> Spectate an all-AI battle</label>
-        </fieldset>
-
-        <div class="row">
-          <label>Allied AI commanders
-            <input id="opt-allies" type="number" min="0" max="8" value="3" />
-          </label>
-          <label>Enemy AI commanders
-            <input id="opt-enemies" type="number" min="1" max="8" value="4" />
-          </label>
-        </div>
-        <div class="row">
-          <label>AI difficulty
-            <select id="opt-difficulty">
-              <option value="easy">Easy</option>
-              <option value="normal" selected>Normal</option>
-              <option value="hard">Hard</option>
-            </select>
-          </label>
-          <label>Seed (blank = random)
-            <input id="opt-seed" type="text" placeholder="random" />
-          </label>
+        <div class="title-buttons">
+          <button id="btn-campaign-continue" class="big">Continue Campaign</button>
+          <button id="btn-campaign-new" class="big">New Campaign</button>
         </div>
 
-        <button id="btn-start">Deploy</button>
-        <p class="hint">You command one squad. Allied commanders fight beside you; the enemy team is fully AI. Capture PoCs by holding them uncontested.</p>
+        <details id="skirmish-panel">
+          <summary>Skirmish (quick battle, no progression)</summary>
+          <fieldset>
+            <legend>Your side</legend>
+            <label><input type="radio" name="side" value="attacker" checked /> Attacker — capture every Point of Contention</label>
+            <label><input type="radio" name="side" value="defender" /> Defender — hold out for 15 minutes</label>
+            <label><input type="radio" name="side" value="spectate" /> Spectate an all-AI battle</label>
+          </fieldset>
+          <div class="row">
+            <label>Allied AI commanders
+              <input id="opt-allies" type="number" min="0" max="8" value="3" />
+            </label>
+            <label>Enemy AI commanders
+              <input id="opt-enemies" type="number" min="1" max="8" value="4" />
+            </label>
+          </div>
+          <div class="row">
+            <label>AI difficulty
+              <select id="opt-difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+            <label>Seed (blank = random)
+              <input id="opt-seed" type="text" placeholder="random" />
+            </label>
+          </div>
+          <button id="btn-start">Deploy</button>
+        </details>
+
+        <p class="hint">Campaign: lead your persistent squad across the provinces of Calderis. Win battles, level your units, refit them in the garage, and take Vesper Keep.</p>
       </div>
     </div>
+
+    <div id="overlay" style="display: none"></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

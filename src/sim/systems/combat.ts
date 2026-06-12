@@ -18,13 +18,16 @@ export function canHit(unit: UnitState, target: UnitState): boolean {
   return unit.stats.weapons.some((w) => modeFor(w, domain) !== undefined);
 }
 
-export function applyDamage(world: World, target: UnitState, amount: number): void {
+export function applyDamage(world: World, target: UnitState, amount: number, sourceId = -1): void {
   if (!target.alive) return;
   target.hp -= amount;
   world.events.push({ type: 'unitDamaged', unitId: target.id, amount });
+  const source = sourceId >= 0 ? world.units[sourceId] : undefined;
+  if (source) source.damageDealt += amount;
   if (target.hp <= 0) {
     target.hp = 0;
     target.alive = false;
+    if (source) source.kills += 1;
     world.events.push({ type: 'unitDied', unitId: target.id, pos: { ...target.pos } });
   }
 }
@@ -111,7 +114,7 @@ function tryFire(world: World, unit: UnitState, target: UnitState): void {
         target.stats.armor,
         target.stats.armorClass,
       );
-      applyDamage(world, target, dmg);
+      applyDamage(world, target, dmg, unit.id);
       world.events.push({
         type: 'weaponFired',
         unitId: unit.id,
@@ -141,6 +144,7 @@ function tryFire(world: World, unit: UnitState, target: UnitState): void {
         damage: mode.damage,
         damageType: weapon.damageType,
         sourceTeam: unit.team,
+        sourceId: unit.id,
         targetDomain: domain,
         splashRadius: splash,
         homingTargetId: splash > 0 ? -1 : target.id,

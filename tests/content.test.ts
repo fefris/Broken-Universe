@@ -4,7 +4,7 @@ import { db } from './helpers';
 
 describe('content database', () => {
   it('loads and resolves every shipped design without errors', () => {
-    expect(db.designs.length).toBe(12);
+    expect(db.designs.length).toBe(13);
     for (const design of db.designs) {
       const errors = validateDesign(design, db).filter((i) => i.severity === 'error');
       expect(errors, `design ${design.id}`).toEqual([]);

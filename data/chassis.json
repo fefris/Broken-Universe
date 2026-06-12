@@ -3,72 +3,72 @@
     "id": "ch_mote", "name": "Mote Frame", "division": "infantry", "frame": "mote",
     "techLevel": 2, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 1000, "baseArmor": 4, "speed": 3.4, "viewRange": 8.5, "radius": 0.8,
-    "unitWeight": 75, "maxWeight": 110, "maxSpace": 10, "slots": 10
+    "unitWeight": 75, "maxWeight": 110, "maxSpace": 10, "slots": 10, "cost": 25
   },
   {
     "id": "ch_courier", "name": "Courier Frame", "division": "infantry", "frame": "courier",
     "techLevel": 2, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 900, "baseArmor": 4, "speed": 3.9, "viewRange": 7.0, "radius": 0.8,
-    "unitWeight": 70, "maxWeight": 105, "maxSpace": 10, "slots": 10
+    "unitWeight": 70, "maxWeight": 105, "maxSpace": 10, "slots": 10, "cost": 30
   },
   {
     "id": "ch_bulwark", "name": "Bulwark Frame", "division": "infantry", "frame": "bulwark",
     "techLevel": 6, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 1500, "baseArmor": 6, "speed": 2.6, "viewRange": 8.0, "radius": 0.9,
-    "unitWeight": 90, "maxWeight": 230, "maxSpace": 12, "slots": 10
+    "unitWeight": 90, "maxWeight": 230, "maxSpace": 12, "slots": 10, "cost": 60
   },
   {
     "id": "ch_stinger", "name": "Stinger Frame", "division": "infantry", "frame": "stinger",
     "techLevel": 4, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 950, "baseArmor": 4, "speed": 3.2, "viewRange": 10.0, "radius": 0.8,
-    "unitWeight": 75, "maxWeight": 105, "maxSpace": 10, "slots": 10
+    "unitWeight": 75, "maxWeight": 105, "maxSpace": 10, "slots": 10, "cost": 35
   },
   {
     "id": "ch_mender", "name": "Mender Frame", "division": "infantry", "frame": "mender",
     "techLevel": 4, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 750, "baseArmor": 2, "speed": 3.3, "viewRange": 9.0, "radius": 0.8,
-    "unitWeight": 70, "maxWeight": 95, "maxSpace": 10, "slots": 10
+    "unitWeight": 70, "maxWeight": 95, "maxSpace": 10, "slots": 10, "cost": 40
   },
   {
     "id": "ch_dustdevil", "name": "Dustdevil Chassis", "division": "mechanized", "frame": "dustdevil",
     "techLevel": 5, "bodyType": "mechanical", "locomotion": "hover",
     "baseHealth": 1250, "baseArmor": 2, "speed": 8.4, "viewRange": 11.0, "radius": 1.2,
-    "unitWeight": 120, "maxWeight": 120, "maxSpace": 11, "slots": 10
+    "unitWeight": 120, "maxWeight": 120, "maxSpace": 11, "slots": 10, "cost": 100
   },
   {
     "id": "ch_mastodon", "name": "Mastodon Chassis", "division": "mechanized", "frame": "mastodon",
     "techLevel": 10, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 2000, "baseArmor": 8, "speed": 3.0, "viewRange": 9.0, "radius": 1.8,
-    "unitWeight": 350, "maxWeight": 280, "maxSpace": 16, "slots": 10
+    "unitWeight": 350, "maxWeight": 280, "maxSpace": 16, "slots": 10, "cost": 120
   },
   {
     "id": "ch_longarm", "name": "Longarm Chassis", "division": "mechanized", "frame": "longarm",
     "techLevel": 8, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 1200, "baseArmor": 5, "speed": 2.2, "viewRange": 4.0, "radius": 1.5,
-    "unitWeight": 200, "maxWeight": 200, "maxSpace": 16, "slots": 10
+    "unitWeight": 200, "maxWeight": 200, "maxSpace": 16, "slots": 10, "cost": 90
   },
   {
     "id": "ch_skyspike", "name": "Skyspike Chassis", "division": "mechanized", "frame": "skyspike",
     "techLevel": 6, "bodyType": "mechanical", "locomotion": "ground",
     "baseHealth": 1500, "baseArmor": 8, "speed": 3.6, "viewRange": 6.5, "radius": 1.5,
-    "unitWeight": 180, "maxWeight": 150, "maxSpace": 13, "slots": 10
+    "unitWeight": 180, "maxWeight": 150, "maxSpace": 13, "slots": 10, "cost": 70
   },
   {
     "id": "ch_mistral", "name": "Mistral Airframe", "division": "aerial", "frame": "mistral",
     "techLevel": 6, "bodyType": "mechanical", "locomotion": "air",
     "baseHealth": 950, "baseArmor": 0, "speed": 7.7, "viewRange": 13.5, "radius": 1.2,
-    "unitWeight": 100, "maxWeight": 95, "maxSpace": 10, "slots": 10
+    "unitWeight": 100, "maxWeight": 95, "maxSpace": 10, "slots": 10, "cost": 90
   },
   {
     "id": "ch_monsoon", "name": "Monsoon Airframe", "division": "aerial", "frame": "monsoon",
     "techLevel": 8, "bodyType": "mechanical", "locomotion": "air",
     "baseHealth": 1300, "baseArmor": 2, "speed": 6.0, "viewRange": 11.0, "radius": 1.4,
-    "unitWeight": 130, "maxWeight": 150, "maxSpace": 13, "slots": 10
+    "unitWeight": 130, "maxWeight": 150, "maxSpace": 13, "slots": 10, "cost": 100
   },
   {
     "id": "ch_hatchling", "name": "Hatchling Husk", "division": "bioform", "frame": "hatchling",
     "techLevel": 2, "bodyType": "biological", "locomotion": "ground",
     "baseHealth": 750, "baseArmor": 0, "speed": 4.5, "viewRange": 8.0, "radius": 0.7,
-    "unitWeight": 40, "maxWeight": 55, "maxSpace": 8, "slots": 10
+    "unitWeight": 40, "maxWeight": 55, "maxSpace": 8, "slots": 10, "cost": 25
   }
 ]

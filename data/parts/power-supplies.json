@@ -1,32 +1,42 @@
 [
   {
     "id": "ps_vesta_cell", "name": "Vesta Accumulator", "kind": "powerSupply", "techLevel": 2,
-    "weight": 12, "space": 2, "complexity": 4, "passiveDrain": 0,
+    "weight": 12, "space": 2, "complexity": 4, "passiveDrain": 0, "cost": 15,
     "maxEnergy": 6600, "recharge": 330
   },
   {
+    "id": "ps_vesta_cell2", "name": "Vesta Accumulator II", "kind": "powerSupply", "techLevel": 14,
+    "weight": 12, "space": 2, "complexity": 5, "passiveDrain": 0, "cost": 30,
+    "maxEnergy": 7600, "recharge": 380
+  },
+  {
     "id": "ps_aphelion_cell", "name": "Aphelion Stormcell", "kind": "powerSupply", "techLevel": 6,
-    "weight": 12, "space": 2, "complexity": 5, "passiveDrain": 0,
+    "weight": 12, "space": 2, "complexity": 5, "passiveDrain": 0, "cost": 25,
     "maxEnergy": 6750, "recharge": 363
   },
   {
     "id": "ps_mirov_cell", "name": "Mirov Surge Cell", "kind": "powerSupply", "techLevel": 4,
-    "weight": 10, "space": 2, "complexity": 4, "passiveDrain": 0,
+    "weight": 10, "space": 2, "complexity": 4, "passiveDrain": 0, "cost": 20,
     "maxEnergy": 6700, "recharge": 360
   },
   {
     "id": "ps_sump_reactor", "name": "Sump Reactor", "kind": "powerSupply", "techLevel": 8,
-    "weight": 30, "space": 3, "complexity": 6, "passiveDrain": 0,
+    "weight": 30, "space": 3, "complexity": 6, "passiveDrain": 0, "cost": 30,
     "maxEnergy": 10100, "recharge": 110
   },
   {
+    "id": "ps_sump_reactor2", "name": "Sump Reactor Mk II", "kind": "powerSupply", "techLevel": 20,
+    "weight": 30, "space": 3, "complexity": 7, "passiveDrain": 0, "cost": 55,
+    "maxEnergy": 12000, "recharge": 130
+  },
+  {
     "id": "ps_sump_reactor_xl", "name": "Sump Reactor XL", "kind": "powerSupply", "techLevel": 12,
-    "weight": 36, "space": 3, "complexity": 7, "passiveDrain": 0,
+    "weight": 36, "space": 3, "complexity": 7, "passiveDrain": 0, "cost": 35,
     "maxEnergy": 10800, "recharge": 114
   },
   {
     "id": "ps_bio_sac", "name": "Glycogen Sac", "kind": "powerSupply", "techLevel": 2,
-    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0, "cost": 10,
     "maxEnergy": 5000, "recharge": 200
   }
 ]

@@ -64,10 +64,24 @@ function gather(design: UnitDesign, db: ContentLookup): GatheredParts | string {
 }
 
 /**
+ * Hero-driven modifiers applied when a design is validated or baked.
+ * maxWeightMult: Mechanical Aptitude expands the weight budget (SG: ~1%/pt).
+ * healthMult: unit veterancy bonus applied to final max health.
+ */
+export interface DesignMods {
+  maxWeightMult?: number;
+  healthMult?: number;
+}
+
+/**
  * Enforce the five SG design constraints plus fitting rules.
  * Engine strain is a warning (the design works, but slower and hungrier).
  */
-export function validateDesign(design: UnitDesign, db: ContentLookup): DesignIssue[] {
+export function validateDesign(
+  design: UnitDesign,
+  db: ContentLookup,
+  mods?: DesignMods,
+): DesignIssue[] {
   const g = gather(design, db);
   if (typeof g === 'string') return [{ severity: 'error', message: g }];
   const issues: DesignIssue[] = [];
@@ -78,8 +92,9 @@ export function validateDesign(design: UnitDesign, db: ContentLookup): DesignIss
   if (parts.length > chassis.slots) {
     err(`${parts.length} parts exceed ${chassis.slots} slots`);
   }
-  if (g.totalPartWeight > chassis.maxWeight) {
-    err(`part weight ${g.totalPartWeight} exceeds max weight ${chassis.maxWeight}`);
+  const weightBudget = Math.round(chassis.maxWeight * (mods?.maxWeightMult ?? 1));
+  if (g.totalPartWeight > weightBudget) {
+    err(`part weight ${g.totalPartWeight} exceeds max weight ${weightBudget}`);
   }
   const totalSpace = parts.reduce((sum, p) => sum + p.space, 0);
   if (totalSpace > chassis.maxSpace) {
@@ -132,9 +147,20 @@ export function validateDesign(design: UnitDesign, db: ContentLookup): DesignIss
   return issues;
 }
 
+/** Total credit price of a design: hull plus every fitted part. */
+export function designCost(design: UnitDesign, db: ContentLookup): number {
+  const g = gather(design, db);
+  if (typeof g === 'string') throw new Error(g);
+  return g.chassis.cost + g.parts.reduce((sum, p) => sum + p.cost, 0);
+}
+
 /** Bake a valid design into flat battle stats. Throws on validation errors. */
-export function resolveUnit(design: UnitDesign, db: ContentLookup): ResolvedUnit {
-  const issues = validateDesign(design, db);
+export function resolveUnit(
+  design: UnitDesign,
+  db: ContentLookup,
+  mods?: DesignMods,
+): ResolvedUnit {
+  const issues = validateDesign(design, db, mods);
   const errors = issues.filter((i) => i.severity === 'error');
   if (errors.length > 0) {
     throw new Error(`invalid design '${design.id}': ${errors.map((e) => e.message).join('; ')}`);
@@ -175,7 +201,10 @@ export function resolveUnit(design: UnitDesign, db: ContentLookup): ResolvedUnit
     division: chassis.division,
     locomotion: chassis.locomotion,
     radius: chassis.radius,
-    maxHealth: chassis.baseHealth + engine.healthBonus + (armor?.healthBonus ?? 0),
+    maxHealth: Math.round(
+      (chassis.baseHealth + engine.healthBonus + (armor?.healthBonus ?? 0)) *
+        (mods?.healthMult ?? 1),
+    ),
     armor: chassis.baseArmor + (armor?.armor ?? 0),
     armorClass: armor?.armorClass ?? (chassis.bodyType === 'biological' ? 'organic' : 'deflective'),
     speed: chassis.speed * (strained ? STRAIN_SPEED_MULT : 1),
@@ -189,6 +218,6 @@ export function resolveUnit(design: UnitDesign, db: ContentLookup): ResolvedUnit
         repair: { hps: repairMisc.effect.hps, range: repairMisc.effect.range },
       }),
     regenHps,
-    cost: design.cost,
+    cost: chassis.cost + g.parts.reduce((sum, p) => sum + p.cost, 0),
   };
 }
