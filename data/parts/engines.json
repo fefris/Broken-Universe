@@ -1,0 +1,27 @@
+[
+  {
+    "id": "eng_vesta_compact", "name": "Vesta Compact Drive", "kind": "engine", "techLevel": 2,
+    "weight": 50, "space": 2, "complexity": 6, "passiveDrain": 50,
+    "power": 600, "healthBonus": 450, "biodrive": false
+  },
+  {
+    "id": "eng_vesta_heavy", "name": "Vesta Siegeworks Drive", "kind": "engine", "techLevel": 8,
+    "weight": 120, "space": 3, "complexity": 10, "passiveDrain": 50,
+    "power": 1400, "healthBonus": 1100, "biodrive": false
+  },
+  {
+    "id": "eng_mirov_medium", "name": "Mirov Tractive Drive", "kind": "engine", "techLevel": 5,
+    "weight": 60, "space": 2, "complexity": 8, "passiveDrain": 50,
+    "power": 1000, "healthBonus": 600, "biodrive": false
+  },
+  {
+    "id": "eng_kestrel_lift", "name": "Kestrel Liftjet", "kind": "engine", "techLevel": 6,
+    "weight": 40, "space": 2, "complexity": 8, "passiveDrain": 50,
+    "power": 900, "healthBonus": 300, "biodrive": false
+  },
+  {
+    "id": "eng_pulse_heart", "name": "Pulsing Heart", "kind": "engine", "techLevel": 2,
+    "weight": 20, "space": 1, "complexity": 2, "passiveDrain": 10,
+    "power": 300, "healthBonus": 400, "biodrive": true
+  }
+]

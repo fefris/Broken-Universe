@@ -1,0 +1,22 @@
+[
+  {
+    "id": "arm_light_mesh", "name": "Mirov Weave Mesh", "kind": "armor", "techLevel": 2,
+    "weight": 5, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "armor": 2, "healthBonus": 100, "armorClass": "deflective"
+  },
+  {
+    "id": "arm_flak_vest", "name": "Mirov Flak Jacket", "kind": "armor", "techLevel": 2,
+    "weight": 8, "space": 1, "complexity": 0, "passiveDrain": 0,
+    "armor": 4, "healthBonus": 200, "armorClass": "deflective"
+  },
+  {
+    "id": "arm_composite_plate", "name": "Vesta Composite Plate", "kind": "armor", "techLevel": 6,
+    "weight": 25, "space": 2, "complexity": 0, "passiveDrain": 0,
+    "armor": 20, "healthBonus": 800, "armorClass": "ablative"
+  },
+  {
+    "id": "arm_warden_plate", "name": "Vesta Warden Plate", "kind": "armor", "techLevel": 10,
+    "weight": 40, "space": 2, "complexity": 0, "passiveDrain": 0,
+    "armor": 28, "healthBonus": 1500, "armorClass": "ablative"
+  }
+]

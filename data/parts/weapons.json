@@ -1,0 +1,69 @@
+[
+  {
+    "id": "wpn_vf2_scattergun", "name": "VF-2 Scattergun", "kind": "weapon", "techLevel": 2,
+    "weight": 20, "space": 2, "complexity": 8, "passiveDrain": 0,
+    "frames": ["mote"], "damageType": "kinetic", "energyPerShot": 35,
+    "ground": { "damage": 90, "range": 14, "cooldown": 1.5 }
+  },
+  {
+    "id": "wpn_vf1_carbine", "name": "VF-1 Carbine", "kind": "weapon", "techLevel": 2,
+    "weight": 15, "space": 2, "complexity": 8, "passiveDrain": 0,
+    "frames": ["courier"], "damageType": "kinetic", "energyPerShot": 31,
+    "ground": { "damage": 84, "range": 14, "cooldown": 1.4 }
+  },
+  {
+    "id": "wpn_lance_array", "name": "Aphelion Lance Array", "kind": "weapon", "techLevel": 6,
+    "weight": 35, "space": 3, "complexity": 14, "passiveDrain": 0,
+    "frames": ["bulwark"], "damageType": "beam", "energyPerShot": 110,
+    "ground": { "damage": 165, "range": 11, "cooldown": 2.2 }
+  },
+  {
+    "id": "wpn_skydart_rack", "name": "Aphelion Skydart Rack", "kind": "weapon", "techLevel": 4,
+    "weight": 18, "space": 2, "complexity": 10, "passiveDrain": 0,
+    "frames": ["stinger"], "damageType": "missile", "energyPerShot": 55, "projectileSpeed": 40,
+    "air": { "damage": 110, "range": 18, "cooldown": 2.0 }
+  },
+  {
+    "id": "wpn_dust_repeater", "name": "KD Repeater", "kind": "weapon", "techLevel": 5,
+    "weight": 22, "space": 2, "complexity": 10, "passiveDrain": 0,
+    "frames": ["dustdevil"], "damageType": "kinetic", "energyPerShot": 45,
+    "ground": { "damage": 120, "range": 10, "cooldown": 1.2 }
+  },
+  {
+    "id": "wpn_vf88_bombard", "name": "VF-88 Bombard", "kind": "weapon", "techLevel": 10,
+    "weight": 60, "space": 4, "complexity": 16, "passiveDrain": 0,
+    "frames": ["mastodon"], "damageType": "kinetic", "energyPerShot": 120, "projectileSpeed": 60,
+    "ground": { "damage": 230, "range": 16, "cooldown": 2.5, "splashRadius": 1.2 }
+  },
+  {
+    "id": "wpn_arc_lobber", "name": "Mirov Arc Lobber", "kind": "weapon", "techLevel": 8,
+    "weight": 70, "space": 5, "complexity": 18, "passiveDrain": 0,
+    "frames": ["longarm"], "damageType": "missile", "energyPerShot": 300, "projectileSpeed": 18, "indirect": true,
+    "ground": { "damage": 280, "range": 24, "cooldown": 6.0, "splashRadius": 3.0, "minRange": 8 }
+  },
+  {
+    "id": "wpn_flakstorm", "name": "KD Flakstorm", "kind": "weapon", "techLevel": 6,
+    "weight": 40, "space": 3, "complexity": 12, "passiveDrain": 0,
+    "frames": ["skyspike"], "damageType": "kinetic", "energyPerShot": 60,
+    "air": { "damage": 125, "range": 26, "cooldown": 1.9 }
+  },
+  {
+    "id": "wpn_talon_pods", "name": "KD Talon Pods", "kind": "weapon", "techLevel": 6,
+    "weight": 25, "space": 3, "complexity": 12, "passiveDrain": 0,
+    "frames": ["mistral"], "damageType": "missile", "energyPerShot": 70, "projectileSpeed": 45,
+    "air": { "damage": 145, "range": 12, "cooldown": 1.7 },
+    "ground": { "damage": 70, "range": 9, "cooldown": 2.2 }
+  },
+  {
+    "id": "wpn_tempest_bay", "name": "KD Tempest Bay", "kind": "weapon", "techLevel": 8,
+    "weight": 55, "space": 4, "complexity": 16, "passiveDrain": 0,
+    "frames": ["monsoon"], "damageType": "missile", "energyPerShot": 200, "projectileSpeed": 25,
+    "ground": { "damage": 320, "range": 6, "cooldown": 3.5, "splashRadius": 2.5 }
+  },
+  {
+    "id": "wpn_caustic_spit", "name": "Caustic Spit", "kind": "weapon", "techLevel": 2,
+    "weight": 5, "space": 1, "complexity": 2, "passiveDrain": 0,
+    "frames": ["hatchling"], "damageType": "flame", "energyPerShot": 25,
+    "ground": { "damage": 100, "range": 3, "cooldown": 1.0 }
+  }
+]
