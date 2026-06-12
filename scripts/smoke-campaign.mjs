@@ -56,9 +56,7 @@ await page.screenshot({ path: `${OUT}/c7-endscreen.png` });
 await page.click('#btn-menu');
 await page.waitForTimeout(600);
 await page.screenshot({ path: `${OUT}/c8-results.png` });
-const resultsVisible = await page.evaluate(
-  () => document.querySelector('.results-table') !== null,
-);
+const resultsVisible = await page.evaluate(() => document.querySelector('.results-table') !== null);
 await page.click('#r-continue');
 await page.waitForTimeout(600);
 await page.screenshot({ path: `${OUT}/c9-hub-after.png` });

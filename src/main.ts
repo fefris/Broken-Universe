@@ -101,10 +101,11 @@ async function runCampaignBattle(
   profile: Profile,
   store: ProfileStore,
   ctx: CampaignBattleContext,
+  difficulty: DifficultyLevel,
 ): Promise<boolean> {
   const config = buildCampaignBattleConfig(ctx, profile, db);
   hideOverlay();
-  const world = await runBattle(app, config, 'normal', ctx.side);
+  const world = await runBattle(app, config, difficulty, ctx.side);
   const won = world.result?.winner === ctx.side;
   const summary = summarizeBattle(world, 0, profile, {
     won,
@@ -183,15 +184,22 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
       if (!pick) continue;
       profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
       const provinceIndex = PROVINCES.findIndex((p) => p.id === def.id);
-      const won = await runCampaignBattle(app, profile, store, {
-        side: ATTACKER,
-        enemyFaction: faction,
-        enemyCommanders: def.garrison,
-        allyCommanders: 2,
-        seed: deriveSeed(campaign.seed, campaign.turn * 31 + provinceIndex),
-        squadUids: pick.squadUids,
-        reserveUids: pick.reserveUids,
-      });
+      // You bring matching allied strength; your squad is the edge.
+      const won = await runCampaignBattle(
+        app,
+        profile,
+        store,
+        {
+          side: ATTACKER,
+          enemyFaction: faction,
+          enemyCommanders: def.garrison,
+          allyCommanders: def.garrison,
+          seed: deriveSeed(campaign.seed, campaign.turn * 31 + provinceIndex),
+          squadUids: pick.squadUids,
+          reserveUids: pick.reserveUids,
+        },
+        def.garrison >= 5 ? 'hard' : 'normal',
+      );
       resolvePlayerAttack(campaign, action.provinceId, won);
       profile.credits += turnIncome(campaign);
       advanceTurn(campaign);
@@ -205,15 +213,21 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
       const pick = await showSquadPicker(profile, db, `Defense of ${def.name}`);
       if (!pick) continue;
       profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
-      const won = await runCampaignBattle(app, profile, store, {
-        side: DEFENDER,
-        enemyFaction: 'enemy',
-        enemyCommanders: pending.strength,
-        allyCommanders: Math.max(1, def.garrison - 1),
-        seed: deriveSeed(campaign.seed, campaign.turn * 53),
-        squadUids: pick.squadUids,
-        reserveUids: pick.reserveUids,
-      });
+      const won = await runCampaignBattle(
+        app,
+        profile,
+        store,
+        {
+          side: DEFENDER,
+          enemyFaction: 'enemy',
+          enemyCommanders: pending.strength,
+          allyCommanders: Math.max(1, def.garrison - 1),
+          seed: deriveSeed(campaign.seed, campaign.turn * 53),
+          squadUids: pick.squadUids,
+          reserveUids: pick.reserveUids,
+        },
+        'normal',
+      );
       resolveDefense(campaign, won);
       profile.credits += turnIncome(campaign);
       advanceTurn(campaign);
