@@ -4,7 +4,7 @@ import type { Vec2, World } from '../sim/types';
 import { COLOR_TRACER, TEAM_COLORS } from './colors';
 
 interface Effect {
-  kind: 'tracer' | 'boom' | 'death';
+  kind: 'tracer' | 'boom' | 'death' | 'ping';
   a: Vec2;
   b?: Vec2;
   radius: number;
@@ -16,6 +16,11 @@ interface Effect {
 /** Short-lived visual effects fed by sim events, drawn into one Graphics. */
 export class FxLayer {
   private effects: Effect[] = [];
+
+  /** A command ping: a ring converging on the clicked spot (player order feedback). */
+  ping(pos: Vec2, now: number, color: number): void {
+    this.effects.push({ kind: 'ping', a: { ...pos }, radius: 4.5, color, born: now, ttl: 520 });
+  }
 
   ingest(events: readonly SimEvent[], world: World, now: number): void {
     for (const e of events) {
@@ -91,6 +96,24 @@ export class FxLayer {
             color: 0xffffff,
             alpha: 0.35 * fade,
           });
+          break;
+        }
+        case 'ping': {
+          // A ring that shrinks onto the clicked point, plus a center pip and ticks.
+          const ringR = Math.max(0.1, fx.radius * fade);
+          g.circle(fx.a.x, fx.a.y, ringR).stroke({ width: 0.32, color: fx.color, alpha: fade });
+          g.circle(fx.a.x, fx.a.y, 0.7).fill({ color: fx.color, alpha: 0.9 * fade });
+          const tick = 0.9;
+          for (const d of [
+            { x: 1, y: 0 },
+            { x: -1, y: 0 },
+            { x: 0, y: 1 },
+            { x: 0, y: -1 },
+          ]) {
+            g.moveTo(fx.a.x + d.x * ringR, fx.a.y + d.y * ringR)
+              .lineTo(fx.a.x + d.x * (ringR + tick), fx.a.y + d.y * (ringR + tick))
+              .stroke({ width: 0.3, color: fx.color, alpha: fade });
+          }
           break;
         }
       }

@@ -37,10 +37,10 @@ commander counts / difficulty / seed, and hit **Deploy**.
 | --- | --- |
 | Left-drag / click | Select your units (yours only — this is Shattered Galaxy) |
 | Right-click | Move; on an enemy: attack |
-| `A` + left-click | Attack-move |
-| `S` | Stop |
+| `Q` + left-click | Attack-move |
+| `X` | Stop |
 | `Ctrl+1-9` / `1-9` | Set / recall control group |
-| Arrows / middle-drag / minimap | Pan camera |
+| WASD / arrows / middle-drag / minimap | Pan camera |
 | Wheel | Zoom |
 | Space | Center on selection/squad |
 
