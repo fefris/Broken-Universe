@@ -35,6 +35,7 @@ export function showSquadPicker(
     let picks: string[] = profile.lastSquad.filter((uid) =>
       profile.units.some((u) => u.uid === uid),
     );
+    let pendingDeleteGroup: string | null = null;
 
     const root = fromHtml(`
       <div class="picker">
@@ -44,6 +45,11 @@ export function showSquadPicker(
           <span class="pg-label">Groups:</span>
           <div class="pg-list" id="p-groups"></div>
           <button id="p-savegroup" class="secondary">Save current as group…</button>
+          <div class="pg-save" id="p-saveform" hidden>
+            <input id="p-groupname" maxlength="24" placeholder="Group name" />
+            <button id="p-groupsave">Save</button>
+            <button id="p-groupcancel" class="secondary">Cancel</button>
+          </div>
         </div>
         <div class="picker-status" id="p-status"></div>
         <div class="picker-grid" id="p-grid"></div>
@@ -60,6 +66,10 @@ export function showSquadPicker(
     const status = root.querySelector<HTMLElement>('#p-status')!;
     const groupsEl = root.querySelector<HTMLElement>('#p-groups')!;
     const launchBtn = root.querySelector<HTMLButtonElement>('#p-launch')!;
+    const saveGroupBtn = root.querySelector<HTMLButtonElement>('#p-savegroup')!;
+    const saveForm = root.querySelector<HTMLElement>('#p-saveform')!;
+    const saveName = root.querySelector<HTMLInputElement>('#p-groupname')!;
+    const saveBtn = root.querySelector<HTMLButtonElement>('#p-groupsave')!;
 
     const squadOf = () => picks.slice(0, field);
     const reservesOf = () => picks.slice(field);
@@ -76,19 +86,27 @@ export function showSquadPicker(
       for (const group of profile.squadGroups) {
         const valid = groupValidUids(group, profile);
         const missing = group.uids.length - valid.length;
+        const confirmingDelete = pendingDeleteGroup === group.name;
         const chip = fromHtml(`
           <span class="pg-chip" title="${valid.length} units${missing > 0 ? `, ${missing} no longer owned` : ''}">
             <button class="pg-load">${esc(group.name)} (${valid.length})</button>
-            <button class="pg-del" title="Delete group">✕</button>
+            <button class="pg-del ${confirmingDelete ? 'confirm' : ''}" title="${confirmingDelete ? 'Confirm delete' : 'Delete group'}">${confirmingDelete ? 'Delete?' : '✕'}</button>
           </span>
         `);
         chip.querySelector<HTMLButtonElement>('.pg-load')!.onclick = () => {
+          pendingDeleteGroup = null;
           picks = groupValidUids(group, profile);
           render();
+          renderGroups();
         };
         chip.querySelector<HTMLButtonElement>('.pg-del')!.onclick = () => {
-          if (!confirm(`Delete group "${group.name}"?`)) return;
+          if (pendingDeleteGroup !== group.name) {
+            pendingDeleteGroup = group.name;
+            renderGroups();
+            return;
+          }
           deleteSquadGroup(profile, group.name);
+          pendingDeleteGroup = null;
           store.save(profile);
           renderGroups();
         };
@@ -124,22 +142,41 @@ export function showSquadPicker(
       launchBtn.disabled = !isValid();
     };
 
-    root.querySelector<HTMLButtonElement>('#p-savegroup')!.onclick = () => {
+    const hideSaveForm = () => {
+      saveForm.hidden = true;
+      saveGroupBtn.hidden = false;
+      saveName.value = '';
+    };
+
+    const showSaveForm = () => {
       if (picks.length === 0) {
         alert('Muster some units first, then save them as a group.');
         return;
       }
       const suggested = profile.squadGroups.length > 0 ? '' : 'Strike Team';
-      const name = prompt('Name this squad group:', suggested);
-      if (name === null) return;
-      const trimmed = name.trim();
+      saveName.value = suggested;
+      saveGroupBtn.hidden = true;
+      saveForm.hidden = false;
+      saveName.focus();
+      saveName.select();
+    };
+
+    const saveCurrentGroup = () => {
+      const trimmed = saveName.value.trim();
       if (!trimmed) return;
-      const exists = profile.squadGroups.some((g) => g.name === trimmed);
-      if (exists && !confirm(`Overwrite the existing group "${trimmed}"?`)) return;
       upsertSquadGroup(profile, trimmed, picks);
       store.save(profile);
+      hideSaveForm();
       renderGroups();
     };
+
+    saveGroupBtn.onclick = showSaveForm;
+    saveBtn.onclick = saveCurrentGroup;
+    saveName.onkeydown = (e) => {
+      if (e.key === 'Enter') saveCurrentGroup();
+      if (e.key === 'Escape') hideSaveForm();
+    };
+    root.querySelector<HTMLButtonElement>('#p-groupcancel')!.onclick = hideSaveForm;
 
     root.querySelector<HTMLButtonElement>('#p-auto')!.onclick = () => {
       // Highest-level units first, greedily filling CP then reserves.

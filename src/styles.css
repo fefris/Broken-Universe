@@ -1026,6 +1026,17 @@ button.secondary:hover {
   color: #5d6f82;
   font-style: italic;
 }
+.pg-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pg-save[hidden] {
+  display: none;
+}
+.pg-save input {
+  width: 150px;
+}
 .pg-chip {
   display: inline-flex;
   align-items: stretch;
@@ -1055,4 +1066,8 @@ button.secondary:hover {
 }
 .pg-del:hover {
   background: #3a242a;
+}
+.pg-del.confirm {
+  color: #ffd2d2;
+  background: #63313a;
 }
