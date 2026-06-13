@@ -7,19 +7,18 @@ import {
   Text,
   Texture,
 } from 'pixi.js';
-import type { Division } from '../content/schema';
-import { TILE_SIZE } from '../sim/constants';
-import { TILE_BLOCKED, TILE_SLOW } from '../sim/map/tilemap';
 import { ATTACKER, type PoC, type UnitState, type World } from '../sim/types';
 import { Camera } from './camera';
-import { COLOR_BLOCKED, COLOR_OPEN, COLOR_SLOW, TEAM_COLORS, hpColor, teamColor } from './colors';
+import { TEAM_COLORS, hpColor, teamColor } from './colors';
 import { FxLayer } from './fx';
+import { drawPocModel, drawSpawnZoneModel, drawTerrainModel } from './mapModels';
 import { Minimap } from './minimap';
+import { type UnitModel, buildUnitModel } from './unitModels';
 
 interface UnitView {
   root: Container;
   shadow: Graphics | null;
-  body: Graphics;
+  model: UnitModel;
   hpBg: Sprite;
   hpFg: Sprite;
   ring: Graphics;
@@ -43,7 +42,6 @@ export class GameRenderer {
   private readonly overlayLayer = new Container();
   private readonly fxGraphics = new Graphics();
 
-  private readonly shapeContexts: Record<Division, GraphicsContext>;
   private readonly ringContext: GraphicsContext;
   private readonly projectileContext: GraphicsContext;
   private readonly unitViews = new Map<number, UnitView>();
@@ -58,16 +56,6 @@ export class GameRenderer {
   ) {
     this.camera = new Camera(world.map.widthMeters, world.map.heightMeters);
 
-    this.shapeContexts = {
-      infantry: new GraphicsContext().circle(0, 0, 1).fill(0xffffff),
-      mechanized: new GraphicsContext().roundRect(-0.95, -0.95, 1.9, 1.9, 0.3).fill(0xffffff),
-      aerial: new GraphicsContext()
-        .poly([1.25, 0, -0.85, 0.85, -0.45, 0, -0.85, -0.85])
-        .fill(0xffffff),
-      bioform: new GraphicsContext()
-        .poly([1, 0, 0.5, 0.87, -0.5, 0.87, -1, 0, -0.5, -0.87, 0.5, -0.87])
-        .fill(0xffffff),
-    };
     this.ringContext = new GraphicsContext()
       .circle(0, 0, 1)
       .stroke({ width: 0.18, color: 0xffffff });
@@ -75,23 +63,8 @@ export class GameRenderer {
 
     // Terrain baked once.
     const terrain = new Graphics();
-    terrain.rect(0, 0, world.map.widthMeters, world.map.heightMeters).fill(COLOR_OPEN);
-    for (let ty = 0; ty < world.map.rows; ty++) {
-      for (let tx = 0; tx < world.map.cols; tx++) {
-        const tile = world.map.tileAt(tx, ty);
-        if (tile === TILE_BLOCKED) {
-          terrain.rect(tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE).fill(COLOR_BLOCKED);
-        } else if (tile === TILE_SLOW) {
-          terrain.rect(tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE).fill(COLOR_SLOW);
-        }
-      }
-    }
-    // Spawn zone markers.
-    for (const zone of world.spawnZones) {
-      terrain
-        .circle(zone.center.x, zone.center.y, zone.radius)
-        .stroke({ width: 0.5, color: TEAM_COLORS[zone.team], alpha: 0.25 });
-    }
+    drawTerrainModel(terrain, world);
+    for (const zone of world.spawnZones) drawSpawnZoneModel(terrain, zone);
 
     this.pocGraphics = new Graphics();
     this.pocLayer.addChild(this.pocGraphics);
@@ -133,16 +106,16 @@ export class GameRenderer {
     const isAir = unit.stats.locomotion === 'air';
     let shadow: Graphics | null = null;
     if (isAir) {
-      shadow = new Graphics(this.shapeContexts.aerial);
+      shadow = new Graphics();
+      shadow.ellipse(0, 0, unit.stats.radius * 0.95, unit.stats.radius * 0.45).fill(0x000000);
       shadow.tint = 0x000000;
-      shadow.alpha = 0.3;
-      shadow.scale.set(unit.stats.radius * 0.9);
+      shadow.alpha = 0.28;
       root.addChild(shadow);
     }
-    const body = new Graphics(this.shapeContexts[unit.stats.division]);
-    body.scale.set(unit.stats.radius);
-    if (isAir) body.position.y = -1.4;
-    root.addChild(body);
+    const model = buildUnitModel(unit.stats);
+    model.root.scale.set(unit.stats.radius);
+    if (isAir) model.root.position.y = -1.4;
+    root.addChild(model.root);
 
     const ring = new Graphics(this.ringContext);
     ring.scale.set(unit.stats.radius + 0.45);
@@ -163,7 +136,7 @@ export class GameRenderer {
     root.addChild(hpBg, hpFg);
 
     this.unitLayer.addChild(root);
-    const view: UnitView = { root, shadow, body, hpBg, hpFg, ring, lastAlive: true };
+    const view: UnitView = { root, shadow, model, hpBg, hpFg, ring, lastAlive: true };
     this.unitViews.set(unit.id, view);
     return view;
   }
@@ -172,20 +145,7 @@ export class GameRenderer {
     const g = this.pocGraphics;
     g.clear();
     for (const poc of pocs) {
-      const color = TEAM_COLORS[poc.owner];
-      g.circle(poc.pos.x, poc.pos.y, poc.radius).fill({ color, alpha: 0.1 });
-      g.circle(poc.pos.x, poc.pos.y, poc.radius).stroke({ width: 0.45, color, alpha: 0.8 });
-      // Inner dodecagon nod to SG's PoC pads.
-      g.circle(poc.pos.x, poc.pos.y, 1.2).fill({ color, alpha: 0.9 });
-      if (poc.progress > 0 && poc.owner !== ATTACKER) {
-        const frac = poc.progress / poc.captureTicks;
-        const start = -Math.PI / 2;
-        const r = poc.radius - 1;
-        // Explicit moveTo: arc() would otherwise connect from the path origin.
-        g.moveTo(poc.pos.x + Math.cos(start) * r, poc.pos.y + Math.sin(start) * r)
-          .arc(poc.pos.x, poc.pos.y, r, start, start + frac * Math.PI * 2)
-          .stroke({ width: 1.0, color: TEAM_COLORS[ATTACKER], alpha: 0.95 });
-      }
+      drawPocModel(g, poc, TEAM_COLORS[ATTACKER]);
     }
   }
 
@@ -213,10 +173,12 @@ export class GameRenderer {
 
       const isPlayerUnit =
         this.playerCommanderId !== null && unit.commanderId === this.playerCommanderId;
-      view.body.tint = teamColor(unit.team, isPlayerUnit);
+      for (const part of view.model.teamParts) part.tint = teamColor(unit.team, isPlayerUnit);
       if (unit.stats.division !== 'infantry') {
-        view.body.rotation = unit.facing;
+        view.model.root.rotation = unit.facing;
         if (view.shadow) view.shadow.rotation = unit.facing;
+      } else {
+        view.model.root.rotation = unit.facing;
       }
 
       const ratio = unit.hp / unit.stats.maxHealth;
