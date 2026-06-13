@@ -1,4 +1,5 @@
 import { TICKS_PER_SECOND } from '../constants';
+import { findPath } from '../map/pathfinding';
 import { type UnitState, type Vec2, type World, dist, domainOf } from '../types';
 
 const DT = 1 / TICKS_PER_SECOND;
@@ -6,6 +7,8 @@ const WAYPOINT_REACHED = 2.0;
 const GOAL_REACHED = 1.5;
 const SEPARATION_RADIUS = 3.5;
 const SEPARATION_STRENGTH = 2.0;
+/** How often a unit chasing a moving target re-plans its route around terrain. */
+const CHASE_REPATH_TICKS = 20;
 
 const scratchIds: number[] = [];
 
@@ -23,6 +26,69 @@ export function bestRangeAgainst(unit: UnitState, domain: 'ground' | 'air'): num
     if (mode && (best === null || mode.range > best)) best = mode.range;
   }
   return best;
+}
+
+/**
+ * How a unit pursues its combat target: 'hold' (positioned to fire — stop and
+ * shoot), or a Vec2 goal to move toward when it must close the distance.
+ * Units out of range, or in range but with terrain blocking a direct shot,
+ * keep advancing instead of freezing — routing around obstacles when blind.
+ */
+function resolveChase(world: World, unit: UnitState, target: UnitState): Vec2 | 'hold' {
+  const domain = domainOf(target);
+  const isAir = unit.stats.locomotion === 'air';
+  const d = dist(unit.pos, target.pos);
+  let los: boolean | null = null;
+  const sight = (): boolean => {
+    if (los === null) los = isAir || world.map.los(unit.pos, target.pos);
+    return los;
+  };
+
+  let canFireHere = false;
+  let wantCloser = false;
+  for (const w of unit.stats.weapons) {
+    const mode = domain === 'air' ? w.air : w.ground;
+    if (!mode) continue;
+    if (mode.minRange !== undefined && d < mode.minRange) continue; // too close for this weapon
+    if (d > mode.range) {
+      wantCloser = true; // out of range: advance
+      continue;
+    }
+    if (w.indirect || sight())
+      canFireHere = true; // in range with a clear shot
+    else wantCloser = true; // in range but terrain blocks the shot: reposition
+  }
+
+  // Hold when we can fire, or when the only obstacle is being too close to
+  // fire anything (advancing would just make point-blank worse).
+  if (canFireHere || !wantCloser) {
+    unit.path = null;
+    return 'hold';
+  }
+
+  if (sight()) {
+    unit.path = null;
+    return target.pos; // clear line: make straight for the target
+  }
+
+  // Blind: route around terrain, re-planning periodically as the target moves.
+  if (
+    !unit.path ||
+    unit.path.length === 0 ||
+    unit.pathIndex >= unit.path.length ||
+    (world.tick + unit.id) % CHASE_REPATH_TICKS === 0
+  ) {
+    unit.path = findPath(world.map, unit.pos, target.pos);
+    unit.pathIndex = 0;
+  }
+  if (!unit.path || unit.path.length === 0) return target.pos;
+  while (
+    unit.pathIndex < unit.path.length - 1 &&
+    dist(unit.pos, unit.path[unit.pathIndex]!) <= WAYPOINT_REACHED
+  ) {
+    unit.pathIndex++;
+  }
+  return unit.path[Math.min(unit.pathIndex, unit.path.length - 1)]!;
 }
 
 function separation(world: World, unit: UnitState): Vec2 {
@@ -68,15 +134,9 @@ export function movementSystem(world: World): void {
       // Chase/hold against the current combat target (plain 'move' ignores it).
       const target = unit.order.kind === 'move' ? null : getChaseTarget(world, unit);
       if (target) {
-        const range = bestRangeAgainst(unit, domainOf(target));
-        if (range !== null) {
-          const d = dist(unit.pos, target.pos);
-          if (d <= range * 0.95) {
-            holding = true;
-          } else if (isAir || map.los(unit.pos, target.pos)) {
-            goal = target.pos;
-          }
-        }
+        const chase = resolveChase(world, unit, target);
+        if (chase === 'hold') holding = true;
+        else goal = chase;
       }
 
       if (!goal && !holding && (unit.order.kind === 'move' || unit.order.kind === 'attackMove')) {

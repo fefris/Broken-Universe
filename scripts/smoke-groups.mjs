@@ -34,9 +34,7 @@ await page.waitForSelector('#p-grid', { timeout: 5000 });
 await page.waitForTimeout(200);
 
 // Capture the auto-restored muster, save it as a group.
-const initialPicks = await page.evaluate(
-  () => document.querySelectorAll('.p-card.picked').length,
-);
+const initialPicks = await page.evaluate(() => document.querySelectorAll('.p-card.picked').length);
 await page.click('#p-savegroup');
 await page.waitForTimeout(200);
 await page.screenshot({ path: `${OUT}/g1-saved.png` });
@@ -48,14 +46,10 @@ const groupSavedInProfile = await page.evaluate(() => {
 // Clear the muster, then reload the saved group.
 await page.click('#p-clear');
 await page.waitForTimeout(150);
-const afterClear = await page.evaluate(
-  () => document.querySelectorAll('.p-card.picked').length,
-);
+const afterClear = await page.evaluate(() => document.querySelectorAll('.p-card.picked').length);
 await page.click('.pg-load');
 await page.waitForTimeout(200);
-const afterReload = await page.evaluate(
-  () => document.querySelectorAll('.p-card.picked').length,
-);
+const afterReload = await page.evaluate(() => document.querySelectorAll('.p-card.picked').length);
 await page.screenshot({ path: `${OUT}/g2-reloaded.png` });
 
 console.log('initial picks:', initialPicks);
