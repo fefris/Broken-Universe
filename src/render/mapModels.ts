@@ -1,7 +1,7 @@
 import type { Graphics } from 'pixi.js';
 import { TILE_SIZE } from '../sim/constants';
 import { TILE_BLOCKED, TILE_OPEN, TILE_SLOW } from '../sim/map/tilemap';
-import type { PoC, SpawnZone, World } from '../sim/types';
+import { type PoC, type SpawnZone, type World, otherTeam } from '../sim/types';
 import {
   COLOR_BLOCKED,
   COLOR_OPEN,
@@ -95,7 +95,7 @@ export function drawSpawnZoneModel(g: Graphics, zone: SpawnZone): void {
   });
 }
 
-export function drawPocModel(g: Graphics, poc: PoC, attackerColor: number): void {
+export function drawPocModel(g: Graphics, poc: PoC): void {
   const color = TEAM_COLORS[poc.owner];
   g.circle(poc.pos.x, poc.pos.y, poc.radius).fill({ color, alpha: 0.08 });
   g.circle(poc.pos.x, poc.pos.y, poc.radius).stroke({ width: 0.45, color, alpha: 0.85 });
@@ -109,12 +109,14 @@ export function drawPocModel(g: Graphics, poc: PoC, attackerColor: number): void
   }
   g.poly(points).fill({ color, alpha: 0.9 });
 
-  if (poc.progress > 0 && color !== attackerColor) {
+  // Progress always counts toward whichever team does not own the point.
+  if (poc.progress > 0) {
+    const captureColor = TEAM_COLORS[otherTeam(poc.owner)];
     const frac = poc.progress / poc.captureTicks;
     const start = -Math.PI / 2;
     const r = poc.radius - 1;
     g.moveTo(poc.pos.x + Math.cos(start) * r, poc.pos.y + Math.sin(start) * r)
       .arc(poc.pos.x, poc.pos.y, r, start, start + frac * Math.PI * 2)
-      .stroke({ width: 1, color: attackerColor, alpha: 0.95 });
+      .stroke({ width: 1, color: captureColor, alpha: 0.95 });
   }
 }

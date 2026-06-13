@@ -7,9 +7,9 @@ import {
   Text,
   Texture,
 } from 'pixi.js';
-import { ATTACKER, type PoC, type UnitState, type World } from '../sim/types';
+import type { PoC, UnitState, World } from '../sim/types';
 import { Camera } from './camera';
-import { TEAM_COLORS, hpColor, teamColor } from './colors';
+import { hpColor, teamColor } from './colors';
 import { FxLayer } from './fx';
 import { drawPocModel, drawSpawnZoneModel, drawTerrainModel } from './mapModels';
 import { Minimap } from './minimap';
@@ -145,7 +145,7 @@ export class GameRenderer {
     const g = this.pocGraphics;
     g.clear();
     for (const poc of pocs) {
-      drawPocModel(g, poc, TEAM_COLORS[ATTACKER]);
+      drawPocModel(g, poc);
     }
   }
 

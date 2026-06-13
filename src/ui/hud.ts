@@ -133,9 +133,9 @@ export class Hud {
       // .chip gives the chamfered pill + tabular nums; team-* tints it by owner
       chip.className = `chip poc-chip ${poc.owner === ATTACKER ? 'team-a' : 'team-d'}`;
       const pct = Math.round((poc.progress / poc.captureTicks) * 100);
-      const label = pct > 0 && poc.owner !== ATTACKER ? `${poc.label} ${pct}%` : poc.label;
-      // contested points (partial capture by attacker) flag a target reticle
-      const glyph = pct > 0 && poc.owner !== ATTACKER ? icon('target', { size: 12 }) : '';
+      // Progress means the non-owner is taking it — either side can flip a PoC.
+      const label = pct > 0 ? `${poc.label} ${pct}%` : poc.label;
+      const glyph = pct > 0 ? icon('target', { size: 12 }) : '';
       chip.innerHTML = `${glyph}<span>${esc(label)}</span>`;
       this.pocStrip.appendChild(chip);
     }

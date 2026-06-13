@@ -4,7 +4,6 @@ import { type Rng, createRng } from '../sim/rng';
 import { bestRangeAgainst } from '../sim/systems/movement';
 import { canDeploy } from '../sim/systems/reserves';
 import {
-  ATTACKER,
   type Commander,
   type CommanderIntent,
   type UnitState,
@@ -104,11 +103,12 @@ export class AICommander {
     centroid.y /= myUnits.length;
 
     const candidates: ScoredIntent[] = [];
-    const isAttacker = commander.team === ATTACKER;
 
+    // Every commander pursues PoCs it does not own (capture OR recapture) and
+    // defends the ones it holds — the symmetric model that lets a defender take
+    // back ground it lost.
     for (const poc of world.pocs) {
-      const relevant = isAttacker ? poc.owner !== commander.team : poc.owner === commander.team;
-      if (!relevant) continue;
+      const mine = poc.owner === commander.team;
 
       let friendly = 0;
       let enemy = 0;
@@ -119,18 +119,25 @@ export class AICommander {
         else enemy += combatPower(u);
       }
 
-      let score = 100;
-      // Urgency: a PoC mid-capture matters to both sides.
+      // Taking ground you don't hold is the primary driver; sitting on an
+      // unthreatened point you already own is worth little, so squads keep
+      // pressing objectives instead of turtling apart.
+      let score = mine ? 35 : 100;
+      // Urgency: a PoC mid-flip matters to both sides (about to be lost or won).
       score += (poc.progress / poc.captureTicks) * 80;
       score -= dist(centroid, poc.pos) * 0.3;
       const advantage = (friendly + 1) / (enemy + 1);
-      score += Math.max(-60, Math.min(40, (advantage - 1) * 40));
-      // Defenders prioritize zones with enemies bearing down on them.
-      if (!isAttacker && enemy > 0) score += 50;
-      // Spread the team: penalize objectives teammates already took.
+      // Mild force-balance steer; capped small on the downside so attackers
+      // still commit to assaulting a point they must take to win.
+      score += Math.max(-25, Math.min(40, (advantage - 1) * 40));
+      // Rally hard to an owned point that is actually under threat.
+      if (mine && enemy > 0) score += 60;
+      // Coordinate with teammates: defenders spread to cover every owned point,
+      // attackers concentrate force on one objective to break a defended line
+      // (and so actually make contact rather than stalling apart).
       for (const other of world.commanders) {
         if (other.id === commander.id || other.team !== commander.team) continue;
-        if (other.intent && other.intent.pocId === poc.id) score -= 25;
+        if (other.intent && other.intent.pocId === poc.id) score += mine ? -25 : 18;
       }
       if (
         commander.intent &&
@@ -141,25 +148,9 @@ export class AICommander {
       }
       score *= 1 + this.rng.range(-this.profile.scoreNoise, this.profile.scoreNoise);
 
-      // Attackers mass at a staging point short of a defended PoC instead of
-      // trickling in. Staged units sit inside the influence radius, so once
-      // enough force gathers, `friendly` overtakes `enemy` and the goal
-      // flips to the PoC itself.
-      let goal = { ...poc.pos };
-      if (isAttacker && enemy > friendly * 0.9) {
-        const zone = spawnZoneFor(world.spawnZones, commander.team);
-        const dx = zone.center.x - poc.pos.x;
-        const dy = zone.center.y - poc.pos.y;
-        const d = Math.hypot(dx, dy);
-        if (d > 1) {
-          const stage = poc.radius + 22;
-          goal = { x: poc.pos.x + (dx / d) * stage, y: poc.pos.y + (dy / d) * stage };
-        }
-      }
-
       candidates.push({
-        intent: { kind: isAttacker ? 'attackPoc' : 'defendPoc', pocId: poc.id },
-        goal,
+        intent: { kind: mine ? 'defendPoc' : 'attackPoc', pocId: poc.id },
+        goal: { ...poc.pos },
         score,
       });
     }
