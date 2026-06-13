@@ -5,6 +5,7 @@ import { cpBudget, cpCost, fieldCap, reserveCap } from '../meta/rules';
 import { unitLevel } from '../meta/xp';
 import { designCost } from '../sim/unitStats';
 import { esc, fromHtml, showOverlay } from './dom';
+import { divisionIcon, icon } from './icons';
 
 export interface SquadPick {
   squadUids: string[];
@@ -38,26 +39,26 @@ export function showSquadPicker(
     let pendingDeleteGroup: string | null = null;
 
     const root = fromHtml(`
-      <div class="picker">
-        <h2>${esc(title)}</h2>
+      <div class="picker panel frame cut">
+        <h2 class="heading">${esc(title)}</h2>
         <p class="hint">Click units to muster them. The first ${field} fight from the start; up to ${reserves} more wait in reserve. Fielded squad is limited to ${budget} command points.</p>
-        <div class="picker-groups">
-          <span class="pg-label">Groups:</span>
+        <div class="picker-groups well">
+          <span class="pg-label">${icon('save', { size: 13 })} Squad presets</span>
           <div class="pg-list" id="p-groups"></div>
-          <button id="p-savegroup" class="secondary">Save current as group…</button>
+          <button id="p-savegroup" class="secondary">${icon('plus', { size: 13 })} Save current…</button>
           <div class="pg-save" id="p-saveform" hidden>
             <input id="p-groupname" maxlength="24" placeholder="Group name" />
-            <button id="p-groupsave">Save</button>
+            <button id="p-groupsave">${icon('save', { size: 13 })} Save</button>
             <button id="p-groupcancel" class="secondary">Cancel</button>
           </div>
         </div>
         <div class="picker-status" id="p-status"></div>
         <div class="picker-grid" id="p-grid"></div>
         <div class="picker-actions">
-          <button id="p-launch" class="big">Launch battle</button>
+          <button id="p-launch" class="big">${icon('attack', { size: 16 })} Launch battle</button>
           <button id="p-auto" class="secondary">Auto-muster</button>
           <button id="p-clear" class="secondary">Clear</button>
-          <button id="p-cancel" class="secondary">Cancel</button>
+          <button id="p-cancel" class="secondary">${icon('close', { size: 13 })} Cancel</button>
         </div>
       </div>
     `);
@@ -88,9 +89,9 @@ export function showSquadPicker(
         const missing = group.uids.length - valid.length;
         const confirmingDelete = pendingDeleteGroup === group.name;
         const chip = fromHtml(`
-          <span class="pg-chip" title="${valid.length} units${missing > 0 ? `, ${missing} no longer owned` : ''}">
-            <button class="pg-load">${esc(group.name)} (${valid.length})</button>
-            <button class="pg-del ${confirmingDelete ? 'confirm' : ''}" title="${confirmingDelete ? 'Confirm delete' : 'Delete group'}">${confirmingDelete ? 'Delete?' : '✕'}</button>
+          <span class="pg-chip cut-sm" title="${valid.length} units${missing > 0 ? `, ${missing} no longer owned` : ''}">
+            <button class="pg-load">${esc(group.name)} <i>${valid.length}</i></button>
+            <button class="pg-del ${confirmingDelete ? 'confirm' : ''}" title="${confirmingDelete ? 'Confirm delete' : 'Delete group'}">${confirmingDelete ? 'Delete?' : icon('trash', { size: 12 })}</button>
           </span>
         `);
         chip.querySelector<HTMLButtonElement>('.pg-load')!.onclick = () => {
@@ -120,10 +121,19 @@ export function showSquadPicker(
         const index = picks.indexOf(unit.uid);
         const role = index < 0 ? '' : index < field ? 'FIELD' : 'RESERVE';
         const cp = cpCost(costs.get(unit.uid) ?? 0);
+        const division = db.chassis(unit.chassisId)?.division;
         const card = fromHtml(`
-          <div class="p-card ${role ? `picked ${role.toLowerCase()}` : ''}">
-            <div class="p-card-top"><b>${esc(unit.name)}</b><span>${role}</span></div>
-            <div class="p-card-info">Lv ${unitLevel(unit.xp)} · ${cp} CP · ${costs.get(unit.uid)} cr</div>
+          <div class="p-card cut-sm ${role ? `picked ${role.toLowerCase()}` : ''}">
+            <div class="p-card-top">
+              <span class="p-card-div" title="${division ?? 'unit'}">${division ? divisionIcon(division) : ''}</span>
+              <b class="p-card-name">${esc(unit.name)}</b>
+              <span class="p-card-role">${role}</span>
+            </div>
+            <div class="p-card-info">
+              <span class="p-stat"><i>Lv</i> ${unitLevel(unit.xp)}</span>
+              <span class="p-stat">${icon('cp', { size: 12 })} ${cp}</span>
+              <span class="p-stat">${icon('credits', { size: 12 })} ${costs.get(unit.uid)}</span>
+            </div>
           </div>
         `);
         card.onclick = () => {
@@ -136,8 +146,9 @@ export function showSquadPicker(
       const overCp = squadCp() > budget;
       const overRes = reservesOf().length > reserves;
       status.innerHTML = `
-        <span class="${overCp ? 'over' : ''}">Squad ${squadOf().length}/${field} · ${squadCp()}/${budget} CP</span>
-        <span class="${overRes ? 'over' : ''}">Reserves ${reservesOf().length}/${reserves}</span>
+        <span class="chip ${overCp ? 'bad' : 'amber'}">${icon('faction-player', { size: 13 })} Field ${squadOf().length}/${field}</span>
+        <span class="chip ${overCp ? 'bad' : 'cyan'}">${icon('cp', { size: 13 })} ${squadCp()}/${budget} CP</span>
+        <span class="chip ${overRes ? 'bad' : ''}">${icon('defend', { size: 13 })} Reserve ${reservesOf().length}/${reserves}</span>
       `;
       launchBtn.disabled = !isValid();
     };

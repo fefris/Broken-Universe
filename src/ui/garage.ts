@@ -7,6 +7,7 @@ import { SELL_FRACTION, chassisGate, maxWeightMult, techGate } from '../meta/rul
 import { unitLevel, unitXpForLevel } from '../meta/xp';
 import { designCost, resolveUnit, validateDesign } from '../sim/unitStats';
 import { esc, fromHtml } from './dom';
+import { divisionIcon, icon, partIcon } from './icons';
 
 const KIND_LABELS: Record<string, string> = {
   engine: 'Engine',
@@ -58,14 +59,15 @@ export function renderGarage(
 
   const view = fromHtml(`
     <div class="garage">
-      <div class="garage-roster">
-        <div class="garage-roster-list" id="g-roster"></div>
+      <div class="garage-roster panel">
+        <div class="heading garage-roster-title">Unit Roster</div>
+        <div class="garage-roster-list well" id="g-roster"></div>
         <div class="garage-buy">
           <select id="g-chassis"></select>
-          <button id="g-buy">Commission</button>
+          <button id="g-buy" class="big">${icon('plus', { size: 14 })}Commission</button>
         </div>
       </div>
-      <div class="garage-editor" id="g-editor"></div>
+      <div class="garage-editor panel frame" id="g-editor"></div>
     </div>
   `);
   body.appendChild(view);
@@ -78,10 +80,16 @@ export function renderGarage(
     rosterEl.innerHTML = '';
     for (const unit of profile.units) {
       const chassis = db.chassis(unit.chassisId);
+      // Division glyph keys the row to its branch (infantry/mechanized/aerial/bioform).
+      const div = chassis ? divisionIcon(chassis.division) : icon('div-mechanized');
       const row = fromHtml(`
-        <div class="g-row ${unit.uid === selectedUid ? 'selected' : ''}">
-          <span class="g-row-name">${esc(unit.name)}</span>
-          <span class="g-row-info">Lv ${unitLevel(unit.xp)} · ${esc(chassis?.name ?? '?')}</span>
+        <div class="g-row cut-sm ${unit.uid === selectedUid ? 'selected' : ''}">
+          <span class="g-row-div">${div}</span>
+          <span class="g-row-text">
+            <span class="g-row-name">${esc(unit.name)}</span>
+            <span class="g-row-info">${esc(chassis?.name ?? '?')}</span>
+          </span>
+          <span class="chip amber g-row-lv">Lv ${unitLevel(unit.xp)}</span>
         </div>
       `);
       row.onclick = () => {
@@ -144,7 +152,7 @@ export function renderGarage(
   const renderEditor = () => {
     const unit = selected();
     if (!unit) {
-      editorEl.innerHTML = '<p class="hint">No units owned. Commission one on the left.</p>';
+      editorEl.innerHTML = `<div class="g-empty">${icon('div-mechanized', { size: 40 })}<p class="hint">No units in the development bay. Commission a chassis on the left.</p></div>`;
       return;
     }
     const chassis = db.chassis(unit.chassisId);
@@ -177,11 +185,12 @@ export function renderGarage(
         const p = db.part(id);
         if (!p) return '';
         return `
-          <div class="g-part">
+          <div class="g-part cut-sm">
+            <span class="g-part-icon">${partIcon(p.kind)}</span>
             <span class="g-part-kind">${KIND_LABELS[p.kind]}</span>
             <span class="g-part-name">${esc(p.name)} <i>T${p.techLevel}</i></span>
-            <span class="g-part-cost">${p.cost} cr</span>
-            <button class="g-part-remove" data-index="${index}">✕</button>
+            <span class="g-part-cost num">${p.cost}${icon('credits', { size: 12 })}</span>
+            <button class="g-part-remove" data-index="${index}" title="Remove part">${icon('trash', { size: 14 })}</button>
           </div>`;
       })
       .join('');
@@ -201,11 +210,12 @@ export function renderGarage(
         .map((w) => {
           const g = w.ground ? `G ${w.ground.damage}/${w.ground.range}m/${w.ground.cooldown}s` : '';
           const a = w.air ? `A ${w.air.damage}/${w.air.range}m/${w.air.cooldown}s` : '';
-          return `<li>${esc(w.name)}: ${[g, a].filter(Boolean).join(' · ')}</li>`;
+          return `<li>${icon('part-weapon', { size: 13 })}<span><b>${esc(w.name)}</b> ${[g, a].filter(Boolean).join(' · ')}</span></li>`;
         })
         .join('');
       statsHtml = `
-        <ul class="g-stats">
+        <div class="g-stats-head heading">${icon('target', { size: 14 })}Resolved Performance</div>
+        <ul class="g-stats well">
           <li>HP <b>${r.maxHealth}</b> · Armor <b>${r.armor}</b> (${r.armorClass})</li>
           <li>Speed <b>${r.speed.toFixed(1)}</b> m/s · View <b>${r.viewRange.toFixed(1)}</b> m</li>
           <li>Energy <b>${r.energyMax}</b> (+${r.energyRecharge}/s, −${r.passiveDrain.toFixed(0)}/s drain)</li>
@@ -215,31 +225,53 @@ export function renderGarage(
         </ul>`;
     }
 
+    // One SG budget meter as a labeled segmented .bar. `cap` may be null when the
+    // governing part (computer/engine) is missing — then we show an empty track.
+    const budgetMeter = (label: string, used: number, cap: number | null, unit = ''): string => {
+      const over = cap !== null && used > cap;
+      // Clamp the fill to the track; overflow is signalled by the red flip, not width.
+      const pct = cap && cap > 0 ? Math.min(100, (used / cap) * 100) : 0;
+      const capText = cap === null ? '—' : `${cap}`;
+      const fill = over ? 'var(--bad)' : 'var(--accent)';
+      return `
+        <div class="g-budget ${over ? 'over' : ''}">
+          <span class="g-budget-label">${label}</span>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${fill}"></div></div>
+          <span class="g-budget-val num">${used}/${capText}${unit}</span>
+        </div>`;
+    };
+
+    const engineCap = engine && engine.kind === 'engine' ? engine.power : null;
+    const cxCap = computer && computer.kind === 'computer' ? computer.maxComplexity : null;
+
     editorEl.innerHTML = `
       <div class="g-head">
         <input id="g-name" value="${esc(unit.name)}" maxlength="20" />
-        <span class="g-level">Lv ${level} · ${unit.xp}/${unitXpForLevel(level + 1)} XP · new parts ≤ T${gate}</span>
-        <button id="g-sell" class="secondary">Scrap (+${Math.floor(oldCost * SELL_FRACTION)} cr)</button>
+        <span class="g-level"><span class="chip cyan">Lv ${level}</span> <span class="num">${unit.xp}/${unitXpForLevel(level + 1)} XP</span> · new parts ≤ T${gate}</span>
+        <button id="g-sell" class="secondary">${icon('trash', { size: 13 })}Scrap +${Math.floor(oldCost * SELL_FRACTION)}</button>
       </div>
-      <div class="g-chassis-line">${esc(chassis.name)} · ${chassis.slots} slots · tech ${chassis.techLevel}</div>
+      <div class="g-chassis-line">${divisionIcon(chassis.division)}<span>${esc(chassis.name)} · ${chassis.slots} slots · tech ${chassis.techLevel}</span></div>
+      <div class="divider"></div>
+      <div class="g-budgets-head heading">Engineering Budgets</div>
       <div class="g-budgets">
-        <span class="${weight > weightBudget ? 'over' : ''}">Weight ${weight}/${weightBudget}</span>
-        <span class="${space > chassis.maxSpace ? 'over' : ''}">Space ${space}/${chassis.maxSpace}</span>
-        <span class="${computer && cx > computer.maxComplexity ? 'over' : ''}">Complexity ${cx}/${computer?.kind === 'computer' ? computer.maxComplexity : '—'}</span>
-        <span class="${engine && engine.kind === 'engine' && engine.power < totalWeight ? 'over' : ''}">Engine ${engine?.kind === 'engine' ? engine.power : '—'}/${totalWeight} kg</span>
+        ${budgetMeter('Weight', weight, weightBudget)}
+        ${budgetMeter('Space', space, chassis.maxSpace)}
+        ${budgetMeter('Complexity', cx, cxCap)}
+        ${budgetMeter('Engine', totalWeight, engineCap, ' kg')}
       </div>
+      <div class="g-parts-head heading">Fitted Parts</div>
       <div class="g-parts">${partRows}</div>
       <div class="g-add">
         <select id="g-add-select">${addable}</select>
-        <button id="g-add-btn">Fit part</button>
+        <button id="g-add-btn">${icon('plus', { size: 13 })}Fit part</button>
       </div>
       <div class="g-issues">${issues.map((i) => `<div class="${i.severity}">${esc(i.message)}</div>`).join('')}</div>
       ${statsHtml}
       <div class="g-apply">
         ${
           dirty
-            ? `<span>${price >= 0 ? `Cost: ${price} cr` : `Refund: ${-price} cr`}</span>
-        <button id="g-apply" ${valid && profile.credits + Math.max(0, -price) >= Math.max(0, price) ? '' : 'disabled'}>Apply refit</button>
+            ? `<span class="g-apply-cost ${price >= 0 ? 'spend' : 'refund'}">${icon('credits', { size: 14 })}${price >= 0 ? `Cost: ${price}` : `Refund: ${-price}`}</span>
+        <button id="g-apply" class="big" ${valid && profile.credits + Math.max(0, -price) >= Math.max(0, price) ? '' : 'disabled'}>${icon('save', { size: 14 })}Apply refit</button>
         <button id="g-revert" class="secondary">Revert</button>`
             : ''
         }

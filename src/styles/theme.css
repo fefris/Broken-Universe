@@ -1,0 +1,517 @@
+/* ============================================================================
+   THEME — Broken Universe design system (Shattered Galaxy military console).
+   Single source of visual truth. :root tokens + every shared component class.
+   Screen stylesheets (hud/hub/garage/screens) consume these; they must NOT
+   redefine the classes declared here.
+   ============================================================================ */
+
+:root {
+  /* --- surfaces / background --- */
+  --bg: #080b0f;
+  --bg2: #0c1116;
+  --panel: #151b23;
+  --panel-2: #10161d;
+  --panel-raised: #1c242e;
+  --well: #0a0e12;
+
+  /* --- structural edges --- */
+  --edge-hi: #39465a;
+  --edge-lo: #04070a;
+  --line: #283340;
+
+  /* --- ink (text) --- */
+  --ink: #cbd8e6;
+  --ink-dim: #7e8ea1;
+  --ink-mute: #56697b;
+
+  /* --- accents --- */
+  --accent: #ffb142; /* amber — primary command accent: headers, primary buttons, brackets */
+  --accent-2: #56cdf5; /* cyan — data readouts, links, secondary highlights */
+
+  /* --- status --- */
+  --good: #6fe06f;
+  --warn: #e6c14e;
+  --bad: #ff5a5a;
+
+  /* --- teams --- */
+  --team-player: #3d9bff;
+  --team-enemy: #ff5252;
+  --team-brood: #8fd35a;
+
+  /* --- chamfer sizes (used inside clip-path polygons) --- */
+  --cut: 9px;
+  --cut-sm: 5px;
+
+  /* --- fonts (graceful fallbacks if webfonts fail) --- */
+  --font-head: "Chakra Petch", "Bahnschrift", "Segoe UI Semibold", system-ui, sans-serif;
+  --font-body: "Oxanium", system-ui, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+  /* --- reusable bevel + hatch (kept as vars so panels stay consistent) --- */
+  --bevel-inset: inset 1px 1px 0 rgba(57, 70, 90, 0.5), inset -1px -1px 0 rgba(4, 7, 10, 0.8);
+  --hatch: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.012) 0 2px, transparent 2px 7px);
+}
+
+/* ============================================================================
+   GLOBALS
+   ============================================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  user-select: none;
+  /* faint global vignette so panels read as lit consoles on a dark bridge */
+  background-image: radial-gradient(ellipse at 50% 38%, var(--bg2) 0%, var(--bg) 80%);
+}
+
+#game,
+#game canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* ============================================================================
+   SHAPE HELPERS — chamfer + bevel + double frame + corner brackets.
+   .cut / .cut-sm only clip the corners. .panel adds the metal look.
+   ============================================================================ */
+
+.cut {
+  /* cut all four corners ~9px */
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+.cut-sm {
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+
+/* Beveled gunmetal panel. Chamfered via clip-path; hatch texture layered on. */
+.panel {
+  position: relative;
+  background: linear-gradient(160deg, var(--panel), var(--panel-2));
+  background-image: var(--hatch), linear-gradient(160deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--line);
+  box-shadow: var(--bevel-inset);
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+/* Double-frame variant: a 2nd inner hairline + amber L-shaped corner brackets.
+   The ::after draws the inner frame; ::before draws the top-left+top-right
+   bracket pair; we add a 2nd pseudo via box-shadow trick for bottom brackets. */
+.panel.frame::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  pointer-events: none;
+  border: 1px solid rgba(57, 70, 90, 0.35);
+  /* echo the chamfer on the inner frame so it nests cleanly */
+  clip-path: polygon(
+    calc(var(--cut) - 4px) 0,
+    calc(100% - (var(--cut) - 4px)) 0,
+    100% calc(var(--cut) - 4px),
+    100% calc(100% - (var(--cut) - 4px)),
+    calc(100% - (var(--cut) - 4px)) 100%,
+    calc(var(--cut) - 4px) 100%,
+    0 calc(100% - (var(--cut) - 4px)),
+    0 calc(var(--cut) - 4px)
+  );
+}
+
+/* Amber corner brackets: four small L marks pinned to the frame corners.
+   Implemented as a single ::before using four background gradients so we don't
+   consume both pseudo-elements (::after is the inner frame above). */
+.panel.frame::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  z-index: 1;
+  /* top-left, top-right, bottom-left, bottom-right L brackets, 10px arms, 1px */
+  /* TL horizontal + vertical */
+  background:
+    linear-gradient(var(--accent), var(--accent)) left top / 10px 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left top / 1px 10px no-repeat,
+    /* TR */
+    linear-gradient(var(--accent), var(--accent)) right top / 10px 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right top / 1px 10px no-repeat,
+    /* BL */
+    linear-gradient(var(--accent), var(--accent)) left bottom / 10px 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left bottom / 1px 10px no-repeat,
+    /* BR */
+    linear-gradient(var(--accent), var(--accent)) right bottom / 10px 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right bottom / 1px 10px no-repeat;
+  opacity: 0.85;
+}
+
+/* Recessed data well — sunken slot for logs, lists, readouts. */
+.well {
+  background: var(--well);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+
+/* ============================================================================
+   TYPOGRAPHY HELPERS
+   ============================================================================ */
+
+.heading {
+  font-family: var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* amber left tick before headings */
+.heading::before {
+  content: "";
+  width: 4px;
+  align-self: stretch;
+  min-height: 1em;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(255, 177, 66, 0.5);
+}
+
+.tagline {
+  color: var(--ink-dim);
+  font-family: var(--font-head);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--ink-mute);
+  line-height: 1.55;
+}
+
+.divider {
+  height: 1px;
+  border: none;
+  background: linear-gradient(90deg, transparent, var(--line) 12%, var(--line) 88%, transparent);
+  margin: 10px 0;
+}
+
+/* tabular numeric utility for readouts */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* ============================================================================
+   BUTTONS — base 'button', '.big' (primary amber), '.secondary' (gunmetal).
+   Existing markup already uses these class names; style, do not rename.
+   ============================================================================ */
+
+button {
+  font-family: var(--font-head);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--panel-raised), var(--panel-2));
+  border: 1px solid var(--line);
+  cursor: pointer;
+  padding: 8px 16px;
+  text-transform: uppercase;
+  box-shadow: var(--bevel-inset);
+  transition: background 110ms ease, color 110ms ease, box-shadow 110ms ease;
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+
+button:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(180deg, #232d39, var(--panel));
+}
+
+button:active:not(:disabled) {
+  box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* PRIMARY command button — amber, dark text, larger chamfer. */
+button.big {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 12px 26px;
+  color: #1a1206;
+  background: linear-gradient(180deg, #ffc163, var(--accent));
+  border: 1px solid #c8862e;
+  box-shadow: inset 1px 1px 0 rgba(255, 235, 200, 0.6), inset -1px -1px 0 rgba(120, 70, 10, 0.7), 0
+    0 0 1px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.4);
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+button.big:hover:not(:disabled) {
+  color: #1a1206;
+  background: linear-gradient(180deg, #ffd089, #ffbe54);
+}
+
+button.big:active:not(:disabled) {
+  background: linear-gradient(180deg, var(--accent), #e89a2e);
+  box-shadow: inset 1px 1px 4px rgba(120, 70, 10, 0.8);
+}
+
+/* SECONDARY — gunmetal outline button. */
+button.secondary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-2);
+  background: linear-gradient(180deg, var(--panel-raised), var(--panel-2));
+  border: 1px solid #2f4a5e;
+}
+
+button.secondary:hover:not(:disabled) {
+  color: #aee7ff;
+  background: linear-gradient(180deg, #1d2b35, var(--panel-2));
+  border-color: #3c6178;
+}
+
+/* ============================================================================
+   CHIPS — small chamfered status pills. Modifiers .amber .cyan .good .bad.
+   ============================================================================ */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  color: var(--ink-dim);
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+
+.chip svg {
+  display: block;
+}
+
+.chip.amber {
+  color: var(--accent);
+  border-color: #6b4d20;
+  background: rgba(255, 177, 66, 0.1);
+}
+.chip.cyan {
+  color: var(--accent-2);
+  border-color: #2c4d5e;
+  background: rgba(86, 205, 245, 0.1);
+}
+.chip.good {
+  color: var(--good);
+  border-color: #2e5a2e;
+  background: rgba(111, 224, 111, 0.1);
+}
+.chip.bad {
+  color: var(--bad);
+  border-color: #6b2e2e;
+  background: rgba(255, 90, 90, 0.1);
+}
+
+/* ============================================================================
+   BARS — segmented track + fill. Fill color from inline style or --fill var.
+   The dashed segment overlay creates the SG "ticked" readout look.
+   ============================================================================ */
+
+.bar {
+  position: relative;
+  height: 8px;
+  background: var(--well);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  /* read color from inline style="background:..." OR --fill var; default amber */
+  background: var(--fill, var(--accent));
+  transition: width 120ms linear;
+}
+
+/* segment ticks painted over the whole track */
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 9px, rgba(0, 0, 0, 0.55) 9px 10px);
+}
+
+/* ============================================================================
+   FORM CONTROLS
+   ============================================================================ */
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--well);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  padding: 7px 9px;
+  outline: none;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent-2);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(86, 205, 245, 0.4);
+}
+
+input::placeholder {
+  color: var(--ink-mute);
+}
+
+select {
+  appearance: none;
+  /* amber chevron drawn as background svg so it tints with the theme */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23ffb142'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  padding-right: 26px;
+}
+
+/* tabular numbers in number inputs for that console readout feel */
+input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   CUSTOM SCROLLBAR — thin gunmetal.
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--well);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--edge-hi), var(--line));
+  border: 1px solid var(--edge-lo);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #4a5b73, var(--edge-hi));
+}
+::-webkit-scrollbar-corner {
+  background: var(--well);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--edge-hi) var(--well);
+}
+
+/* ============================================================================
+   FULL-SCREEN OVERLAY BACKDROP — dark + scanlines, scrollable.
+   The meta screens (hub/garage/picker/results) mount into #overlay.
+   ============================================================================ */
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  display: none; /* toggled to flex by dom.ts showOverlay() */
+  align-items: stretch;
+  justify-content: center;
+  overflow: auto;
+  /* scanlines */
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px),
+    /* faint hatch */ var(--hatch), /* base vignette */
+    radial-gradient(ellipse at 50% 35%, var(--bg2) 0%, var(--bg) 85%);
+}

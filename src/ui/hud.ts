@@ -3,6 +3,8 @@ import type { Controls } from '../input/controls';
 import { ticksToSeconds } from '../sim/constants';
 import { canDeploy } from '../sim/systems/reserves';
 import { ATTACKER, type Team, type World } from '../sim/types';
+import { esc } from './dom';
+import { divisionIcon, icon } from './icons';
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -48,10 +50,52 @@ export class Hud {
     this.lastReserveSig = '';
     this.lastPocSig = '';
     this.ended = false;
+    this.decorateChrome();
     const spectating = playerCommanderId === null;
     this.squadBar.style.display = spectating ? 'none' : 'flex';
     this.reservePanel.style.display = spectating ? 'none' : 'block';
     el('btn-menu').onclick = onExit;
+  }
+
+  /**
+   * One-time decoration of the static topbar/reserve/end markup that lives in
+   * index.html. `#timer`/`#cutoff`/`#reserve-info`/`#end-title` text is driven by
+   * textContent each frame, so icons + framing go on sibling/wrapper nodes that
+   * those updates never touch. Idempotent: a data flag guards re-entry when a new
+   * Hud is constructed for a rematch on the same DOM.
+   */
+  private decorateChrome(): void {
+    // --- top bar: amber clock glyph before the timer + a separator rule ---
+    const topbar = this.timer.parentElement;
+    if (topbar && !topbar.dataset.hudDecorated) {
+      topbar.dataset.hudDecorated = '1';
+      this.timer.insertAdjacentHTML('beforebegin', icon('timer', { size: 20 }));
+      // thin vertical rule dividing the clock module from the PoC strip
+      const sep = document.createElement('div');
+      sep.className = 'topbar-sep';
+      this.pocStrip.insertAdjacentElement('beforebegin', sep);
+    }
+
+    // --- reserves: uppercase header with a target glyph above the buttons ---
+    if (!this.reservePanel.dataset.hudDecorated) {
+      this.reservePanel.dataset.hudDecorated = '1';
+      const head = document.createElement('div');
+      head.className = 'reserve-head';
+      head.innerHTML = `${icon('target', { size: 14 })}<span>Reserves</span>`;
+      this.reserveButtons.insertAdjacentElement('beforebegin', head);
+    }
+
+    // --- end screen: wrap the result readout in a framed command-report panel ---
+    if (!this.endScreen.dataset.hudDecorated) {
+      this.endScreen.dataset.hudDecorated = '1';
+      const card = document.createElement('div');
+      card.className = 'panel frame cut end-card';
+      // re-parent the existing title/sub/continue button (keeps its id/wiring)
+      const btn = el('btn-menu');
+      btn.classList.add('big'); // promote Continue to the primary amber command button
+      card.append(this.endTitle, this.endSub, btn);
+      this.endScreen.appendChild(card);
+    }
   }
 
   update(world: World): void {
@@ -86,9 +130,13 @@ export class Hud {
     this.pocStrip.innerHTML = '';
     for (const poc of world.pocs) {
       const chip = document.createElement('div');
-      chip.className = `poc-chip ${poc.owner === ATTACKER ? 'team-a' : 'team-d'}`;
+      // .chip gives the chamfered pill + tabular nums; team-* tints it by owner
+      chip.className = `chip poc-chip ${poc.owner === ATTACKER ? 'team-a' : 'team-d'}`;
       const pct = Math.round((poc.progress / poc.captureTicks) * 100);
-      chip.textContent = pct > 0 && poc.owner !== ATTACKER ? `${poc.label} ${pct}%` : poc.label;
+      const label = pct > 0 && poc.owner !== ATTACKER ? `${poc.label} ${pct}%` : poc.label;
+      // contested points (partial capture by attacker) flag a target reticle
+      const glyph = pct > 0 && poc.owner !== ATTACKER ? icon('target', { size: 12 }) : '';
+      chip.innerHTML = `${glyph}<span>${esc(label)}</span>`;
       this.pocStrip.appendChild(chip);
     }
   }
@@ -103,14 +151,19 @@ export class Hud {
       let slot = this.squadSlots.get(unitId);
       if (!slot) {
         const root = document.createElement('div');
-        root.className = 'squad-slot';
+        root.className = 'squad-slot cut-sm';
         const name = document.createElement('div');
         name.className = 'slot-name';
-        name.textContent = unit.stats.name;
+        // division glyph + ellipsised unit name (label span keeps overflow clean)
+        name.innerHTML = `${divisionIcon(unit.stats.division)}<span class="slot-label">${esc(
+          unit.stats.name,
+        )}</span>`;
+        // .bar/.bar-fill pull in the theme's segmented track + ticks; slot-bar/
+        // slot-fill remain as JS hooks + carry the hp tier color.
         const bar = document.createElement('div');
-        bar.className = 'slot-bar';
+        bar.className = 'slot-bar bar';
         const fill = document.createElement('div');
-        fill.className = 'slot-fill';
+        fill.className = 'slot-fill bar-fill';
         bar.appendChild(fill);
         root.append(name, bar);
         root.onclick = () => this.controls.selectOnly(unitId);
@@ -120,7 +173,7 @@ export class Hud {
       }
       const ratio = unit.alive ? unit.hp / unit.stats.maxHealth : 0;
       slot.fill.style.width = `${Math.round(ratio * 100)}%`;
-      slot.fill.className = `slot-fill ${ratio > 0.6 ? 'hp-high' : ratio > 0.3 ? 'hp-mid' : 'hp-low'}`;
+      slot.fill.className = `slot-fill bar-fill ${ratio > 0.6 ? 'hp-high' : ratio > 0.3 ? 'hp-mid' : 'hp-low'}`;
       slot.root.classList.toggle('dead', !unit.alive);
       slot.root.classList.toggle('selected', this.controls.selection.has(unitId));
     }
@@ -142,8 +195,10 @@ export class Hud {
       const sample = world.units.find((u) => u.stats.designId === designId);
       const name = sample?.stats.name ?? designId.replace(/^d_/, '');
       const btn = document.createElement('button');
-      btn.className = 'reserve-btn';
-      btn.textContent = `${name} ×${count}`;
+      btn.className = 'reserve-btn cut-sm';
+      // division glyph + name + a tabular amber count, e.g. "Striker x3"
+      const glyph = sample ? divisionIcon(sample.stats.division) : '';
+      btn.innerHTML = `${glyph}<span>${esc(name)}</span><span class="rb-count">x${count}</span>`;
       btn.disabled = !deployable;
       btn.onclick = () => {
         if (this.playerCommanderId !== null) {

@@ -1,0 +1,637 @@
+/* ============================================================================
+   HUB — campaign command center: header command-bar, war map, hero sheet.
+   Reuses theme.css component classes (.panel/.well/.heading/.chip/.bar/.button…);
+   this file only adds hub-specific layout + the few bespoke surfaces (province
+   nodes, supply lines, XP/attr sheet). Do NOT redefine theme classes here.
+   ============================================================================ */
+
+.hub {
+  width: min(1200px, 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px 24px;
+  gap: 16px;
+}
+
+/* ---------- Command-bar header --------------------------------------------
+   A single lit console strip: identity on the left, amber resource readouts in
+   the middle, tab controls on the right. */
+.hub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+}
+
+.hub-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hub-name {
+  font-family: var(--font-head);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Rank readout reuses a chip-like cyan badge with the rank chevron icon. */
+.hub-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.hub-rank svg {
+  color: var(--accent-2);
+}
+.hub-rank b {
+  color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Attribute-points nudge: only visible when text is set by JS; amber pulse. */
+.hub-points:not(:empty) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-color: #6b4d20;
+  background: rgba(255, 177, 66, 0.12);
+  animation: hub-points-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hub-points-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 177, 66, 0);
+  }
+  50% {
+    box-shadow: 0 0 8px 0 rgba(255, 177, 66, 0.5);
+  }
+}
+
+/* Resource readouts — amber numerics with currency/income icons. */
+.hub-res {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hub-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  background: var(--well);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+.hub-stat svg {
+  color: var(--ink-mute);
+}
+.hub-stat b {
+  font-size: 13px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+.hub-stat.credits svg {
+  color: var(--accent);
+}
+.hub-stat.income b {
+  color: var(--good);
+}
+
+/* Tab bar — reuses base button look; active tab is amber, exit is red-tinted. */
+.hub-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  /* inherits base button styling from theme.css */
+}
+.tab.active {
+  color: #1a1206;
+  background: linear-gradient(180deg, #ffc163, var(--accent));
+  border-color: #c8862e;
+  box-shadow: inset 1px 1px 0 rgba(255, 235, 200, 0.5), inset -1px -1px 0 rgba(120, 70, 10, 0.6);
+}
+.tab.active:hover:not(:disabled) {
+  color: #1a1206;
+  background: linear-gradient(180deg, #ffd089, #ffbe54);
+}
+.tab.exit {
+  color: var(--bad);
+  border-color: #5a2e36;
+}
+.tab.exit:hover:not(:disabled) {
+  color: #ffd2d2;
+  background: linear-gradient(180deg, #2a1a1e, var(--panel-2));
+  border-color: #7a3a44;
+}
+
+.hub-body {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ============================================================================
+   WAR MAP — strategic console: province nodes, supply lines, detail + log.
+   ============================================================================ */
+
+.map-wrap {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  min-height: 540px;
+}
+
+/* The map theatre: a recessed well with a faint grid overlay behind the nodes. */
+.map-area {
+  position: relative;
+  flex: 1;
+  min-height: 540px;
+  padding: 8px;
+  /* tactical grid */
+  background: repeating-linear-gradient(0deg, rgba(57, 70, 90, 0.08) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, rgba(57, 70, 90, 0.08) 0 1px, transparent 1px 40px),
+    radial-gradient(ellipse at 50% 45%, var(--panel-2) 0%, var(--well) 90%);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.7);
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+.map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Supply lines — dim hairlines linking provinces. */
+.map-edge {
+  stroke: rgba(57, 70, 90, 0.55);
+  stroke-width: 0.4;
+  stroke-dasharray: 1.5 1.5;
+}
+
+.map-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Province marker: chamfered faction-tinted plate with a centered faction icon. */
+.map-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--panel-raised);
+  border: 1px solid var(--line);
+  box-shadow: var(--bevel-inset);
+  color: var(--ink-mute);
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+  transition: transform 110ms ease, box-shadow 110ms ease;
+}
+.map-node:hover .map-dot {
+  transform: scale(1.08);
+}
+
+.map-node.own-player .map-dot {
+  color: var(--team-player);
+  border-color: var(--team-player);
+  background: linear-gradient(160deg, rgba(61, 155, 255, 0.22), var(--panel-2));
+}
+.map-node.own-enemy .map-dot {
+  color: var(--team-enemy);
+  border-color: var(--team-enemy);
+  background: linear-gradient(160deg, rgba(255, 82, 82, 0.22), var(--panel-2));
+}
+.map-node.own-brood .map-dot {
+  color: var(--team-brood);
+  border-color: var(--team-brood);
+  background: linear-gradient(160deg, rgba(143, 211, 90, 0.2), var(--panel-2));
+}
+
+/* Targetable (attackable) province — amber reticle glow + amber rim. */
+.map-node.target .map-dot {
+  border-color: var(--accent);
+  box-shadow: var(--bevel-inset), 0 0 12px rgba(255, 177, 66, 0.7);
+}
+/* A small target reticle pinned to the corner of attackable nodes. */
+.map-node.target::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 177, 66, 0.8);
+}
+
+/* Province under attack — red alarm pulse. */
+.map-node.threatened .map-dot {
+  border-color: var(--bad);
+  animation: map-threat-pulse 1s infinite alternate;
+}
+@keyframes map-threat-pulse {
+  from {
+    box-shadow: var(--bevel-inset), 0 0 4px rgba(255, 90, 90, 0.5);
+  }
+  to {
+    box-shadow: var(--bevel-inset), 0 0 18px rgba(255, 90, 90, 1);
+  }
+}
+
+.map-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-head);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+  text-shadow: 0 1px 3px #000, 0 0 2px #000;
+}
+/* The ★ home/HQ marker glows amber. */
+.map-star {
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(255, 177, 66, 0.8);
+}
+
+/* Bonus badge under the node — a small amber chip with the bonus icon. */
+.map-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  color: var(--accent);
+  background: rgba(255, 177, 66, 0.12);
+  border: 1px solid #6b4d20;
+}
+.map-badge svg {
+  display: block;
+}
+
+/* ---------- Map side column ----------------------------------------------- */
+.map-side {
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Detail panel uses the framed .panel look; JS swaps innerHTML in here. */
+.map-detail {
+  padding: 16px;
+  min-height: 150px;
+}
+.map-detail h3 {
+  font-family: var(--font-head);
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.map-detail .map-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.map-detail p {
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.map-detail .hint {
+  margin-bottom: 0;
+}
+.map-detail button {
+  width: 100%;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+/* Detail's status chips lay out their icon + numerics. */
+.map-detail .chip svg {
+  margin-right: 1px;
+}
+
+/* Alert panel — red console warning when a province is under attack. */
+.map-alert {
+  padding: 14px;
+  font-size: 13px;
+  background: linear-gradient(160deg, rgba(90, 30, 35, 0.55), rgba(40, 14, 18, 0.55));
+  border: 1px solid #a04050;
+  box-shadow: inset 1px 1px 0 rgba(160, 64, 80, 0.3), 0 0 14px rgba(255, 90, 90, 0.15);
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+  animation: map-alert-flash 1.6s ease-in-out infinite;
+}
+@keyframes map-alert-flash {
+  0%,
+  100% {
+    border-color: #a04050;
+  }
+  50% {
+    border-color: #ff6a6a;
+  }
+}
+.map-alert-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ff8a8a;
+}
+.map-alert-title svg {
+  color: var(--bad);
+}
+.map-alert p {
+  color: #d8b8bc;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.map-alert button {
+  width: 100%;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+/* Operations log — recessed well of recent campaign events, newest first. */
+.map-log {
+  flex: 1;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-mute);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: auto;
+  min-height: 90px;
+}
+.map-log div {
+  position: relative;
+  padding-left: 12px;
+  line-height: 1.45;
+}
+/* amber tick prefix per log line for the console-feed look */
+.map-log div::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 4px;
+  height: 1px;
+  background: var(--accent-2);
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   HERO — character sheet: XP bar, attributes, derived effects.
+   ============================================================================ */
+
+.hero-wrap {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hero-card {
+  flex: 1;
+  min-width: 340px;
+  padding: 20px;
+}
+.hero-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-head);
+  font-size: 16px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.hero-card h3 svg {
+  color: var(--accent-2);
+}
+
+/* XP readout: segmented bar (reuses theme .bar/.bar-fill) + caption. */
+.xpbar {
+  position: relative;
+  height: 10px;
+  background: var(--well);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.xpfill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-2), #8fe0ff);
+  box-shadow: 0 0 8px rgba(86, 205, 245, 0.5);
+  transition: width 160ms ease;
+}
+/* segment ticks over the XP track, matching theme .bar */
+.xpbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 11px, rgba(0, 0, 0, 0.55) 11px 12px);
+}
+
+/* Attributes table — name | segmented value pips | amber + button. */
+.attr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0;
+}
+.attr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 10px;
+  background: var(--well);
+  border: 1px solid var(--edge-lo);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+.attr-name {
+  flex: 1;
+  font-family: var(--font-head);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.attr-val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  width: 34px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Amber +button — a small chamfered primary nudge; dim/locked when no points. */
+.attr-plus {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1206;
+  background: linear-gradient(180deg, #ffc163, var(--accent));
+  border: 1px solid #c8862e;
+  box-shadow: inset 1px 1px 0 rgba(255, 235, 200, 0.5), inset -1px -1px 0 rgba(120, 70, 10, 0.6);
+  cursor: pointer;
+  clip-path: polygon(
+    var(--cut-sm) 0,
+    calc(100% - var(--cut-sm)) 0,
+    100% var(--cut-sm),
+    100% calc(100% - var(--cut-sm)),
+    calc(100% - var(--cut-sm)) 100%,
+    var(--cut-sm) 100%,
+    0 calc(100% - var(--cut-sm)),
+    0 var(--cut-sm)
+  );
+}
+.attr-plus svg {
+  display: block;
+}
+.attr-plus:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffd089, #ffbe54);
+}
+.attr-plus:active:not(:disabled) {
+  box-shadow: inset 1px 1px 4px rgba(120, 70, 10, 0.8);
+}
+.attr-plus:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Derived-effects list — cyan-tagged readouts of what each attribute grants. */
+.fx-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+.fx-list li {
+  position: relative;
+  padding-left: 14px;
+}
+.fx-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-2);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.fx-list b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
