@@ -998,3 +998,61 @@ button.secondary:hover {
 .results-totals b {
   color: #e8eef5;
 }
+
+/* ---------- Squad picker: saved groups ---------- */
+.picker-groups {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: #10151c;
+  border: 1px solid #2a3442;
+  border-radius: 8px;
+}
+.pg-label {
+  font-size: 13px;
+  color: #7d92a8;
+  font-weight: 600;
+}
+.pg-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.pg-empty {
+  font-size: 12px;
+  color: #5d6f82;
+  font-style: italic;
+}
+.pg-chip {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid #34465c;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.pg-load {
+  padding: 5px 11px;
+  font-size: 13px;
+  color: #cfe3f5;
+  background: #1c2633;
+  border: none;
+  cursor: pointer;
+}
+.pg-load:hover {
+  background: #28384c;
+}
+.pg-del {
+  padding: 5px 8px;
+  font-size: 11px;
+  color: #ff9a9a;
+  background: #221a1e;
+  border: none;
+  border-left: 1px solid #34465c;
+  cursor: pointer;
+}
+.pg-del:hover {
+  background: #3a242a;
+}

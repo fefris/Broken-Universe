@@ -12,7 +12,14 @@ import {
   turnIncome,
 } from '../src/meta/campaign';
 import { applyOutcome, summarizeBattle } from '../src/meta/outcome';
-import { createMemoryStore, defaultProfile, profileRank } from '../src/meta/profile';
+import {
+  createMemoryStore,
+  defaultProfile,
+  deleteSquadGroup,
+  groupValidUids,
+  profileRank,
+  upsertSquadGroup,
+} from '../src/meta/profile';
 import {
   chassisGate,
   cpBudget,
@@ -81,6 +88,44 @@ describe('profile', () => {
     expect(store.load()?.credits).toBe(1234);
     store.clear();
     expect(store.load()).toBeNull();
+  });
+
+  it('saves, overwrites, and prunes squad groups', () => {
+    const profile = defaultProfile(db);
+    const a = profile.units[0]!.uid;
+    const b = profile.units[1]!.uid;
+    upsertSquadGroup(profile, 'Vanguard', [a, b]);
+    expect(profile.squadGroups).toHaveLength(1);
+    expect(profile.squadGroups[0]).toEqual({ name: 'Vanguard', uids: [a, b] });
+
+    // Same name overwrites rather than duplicating.
+    upsertSquadGroup(profile, 'Vanguard', [b]);
+    expect(profile.squadGroups).toHaveLength(1);
+    expect(profile.squadGroups[0]!.uids).toEqual([b]);
+
+    // Empty names are ignored.
+    upsertSquadGroup(profile, '   ', [a]);
+    expect(profile.squadGroups).toHaveLength(1);
+
+    deleteSquadGroup(profile, 'Vanguard');
+    expect(profile.squadGroups).toHaveLength(0);
+  });
+
+  it('filters group uids to units still owned', () => {
+    const profile = defaultProfile(db);
+    const a = profile.units[0]!.uid;
+    const group = { name: 'X', uids: [a, 'scrapped-uid', profile.units[1]!.uid] };
+    expect(groupValidUids(group, profile)).toEqual([a, profile.units[1]!.uid]);
+  });
+
+  it('defaults squadGroups for legacy saves without the field', () => {
+    const store = createMemoryStore();
+    const profile = defaultProfile(db);
+    // Simulate an older save by stripping the field before persisting.
+    const legacy = JSON.parse(JSON.stringify(profile)) as Record<string, unknown>;
+    legacy.squadGroups = undefined;
+    store.save(legacy as unknown as typeof profile);
+    expect(store.load()?.squadGroups).toEqual([]);
   });
 });
 

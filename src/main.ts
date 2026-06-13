@@ -180,7 +180,7 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
     if (action.kind === 'attack') {
       const def = provinceDef(action.provinceId);
       const faction = campaign.owners[action.provinceId] === 'brood' ? 'brood' : 'enemy';
-      const pick = await showSquadPicker(profile, db, `Assault on ${def.name}`);
+      const pick = await showSquadPicker(profile, db, `Assault on ${def.name}`, store);
       if (!pick) continue;
       profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
       const provinceIndex = PROVINCES.findIndex((p) => p.id === def.id);
@@ -210,7 +210,7 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
     if (action.kind === 'defend' && campaign.pendingAttack) {
       const pending = campaign.pendingAttack;
       const def = provinceDef(pending.provinceId);
-      const pick = await showSquadPicker(profile, db, `Defense of ${def.name}`);
+      const pick = await showSquadPicker(profile, db, `Defense of ${def.name}`, store);
       if (!pick) continue;
       profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
       const won = await runCampaignBattle(

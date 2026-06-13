@@ -17,6 +17,15 @@ export interface OwnedUnit {
   xp: number;
 }
 
+/**
+ * A saved muster preset: an ordered list of unit uids (field picks first,
+ * then reserves — same shape as lastSquad) the player can switch in quickly.
+ */
+export interface SquadGroup {
+  name: string;
+  uids: string[];
+}
+
 export interface Profile {
   version: number;
   heroName: string;
@@ -30,6 +39,8 @@ export interface Profile {
   nextUid: number;
   /** Last squad selection (uids), restored in the squad picker. */
   lastSquad: string[];
+  /** Named muster presets the player can switch between. */
+  squadGroups: SquadGroup[];
   campaign: CampaignState | null;
 }
 
@@ -66,12 +77,38 @@ export function defaultProfile(db: ContentDB): Profile {
     units,
     nextUid,
     lastSquad: units.slice(0, 10).map((u) => u.uid),
+    squadGroups: [],
     campaign: null,
   };
 }
 
 export function profileRank(profile: Profile): number {
   return heroRank(profile.heroXp);
+}
+
+/** A group's uids filtered to units the profile still owns, order preserved. */
+export function groupValidUids(group: SquadGroup, profile: Profile): string[] {
+  const owned = new Set(profile.units.map((u) => u.uid));
+  return group.uids.filter((uid) => owned.has(uid));
+}
+
+/** Save (or overwrite a same-named) squad group. Returns the updated list. */
+export function upsertSquadGroup(profile: Profile, name: string, uids: string[]): void {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const existing = profile.squadGroups.find((g) => g.name === trimmed);
+  if (existing) existing.uids = [...uids];
+  else profile.squadGroups.push({ name: trimmed, uids: [...uids] });
+}
+
+export function deleteSquadGroup(profile: Profile, name: string): void {
+  profile.squadGroups = profile.squadGroups.filter((g) => g.name !== name);
+}
+
+/** Fill in fields absent from older saved profiles. */
+function migrate(profile: Profile): Profile {
+  if (!Array.isArray(profile.squadGroups)) profile.squadGroups = [];
+  return profile;
 }
 
 /** Storage abstraction so tests run without a DOM. */
@@ -89,7 +126,7 @@ export function createLocalStorageStore(): ProfileStore {
         if (!raw) return null;
         const parsed = JSON.parse(raw) as Profile;
         if (parsed.version !== PROFILE_VERSION) return null;
-        return parsed;
+        return migrate(parsed);
       } catch {
         return null;
       }
@@ -114,7 +151,7 @@ export function createLocalStorageStore(): ProfileStore {
 export function createMemoryStore(): ProfileStore {
   let saved: string | null = null;
   return {
-    load: () => (saved ? (JSON.parse(saved) as Profile) : null),
+    load: () => (saved ? migrate(JSON.parse(saved) as Profile) : null),
     save(profile) {
       saved = JSON.stringify(profile);
     },

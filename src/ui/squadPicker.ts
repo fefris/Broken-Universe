@@ -1,6 +1,6 @@
 import type { ContentDB } from '../content/db';
-import type { Profile } from '../meta/profile';
-import { ownedToDesign } from '../meta/profile';
+import type { Profile, ProfileStore } from '../meta/profile';
+import { deleteSquadGroup, groupValidUids, ownedToDesign, upsertSquadGroup } from '../meta/profile';
 import { cpBudget, cpCost, fieldCap, reserveCap } from '../meta/rules';
 import { unitLevel } from '../meta/xp';
 import { designCost } from '../sim/unitStats';
@@ -14,12 +14,14 @@ export interface SquadPick {
 /**
  * Pre-battle muster: pick which owned units deploy. The first `fieldCap`
  * picks form the fielded squad (limited by Tactics command points); the
- * rest wait in reserve.
+ * rest wait in reserve. Saved squad groups let the player switch a whole
+ * roster in with one click and persist presets across battles.
  */
 export function showSquadPicker(
   profile: Profile,
   db: ContentDB,
   title: string,
+  store: ProfileStore,
 ): Promise<SquadPick | null> {
   return new Promise((resolve) => {
     const attrs = profile.attributes;
@@ -38,6 +40,11 @@ export function showSquadPicker(
       <div class="picker">
         <h2>${esc(title)}</h2>
         <p class="hint">Click units to muster them. The first ${field} fight from the start; up to ${reserves} more wait in reserve. Fielded squad is limited to ${budget} command points.</p>
+        <div class="picker-groups">
+          <span class="pg-label">Groups:</span>
+          <div class="pg-list" id="p-groups"></div>
+          <button id="p-savegroup" class="secondary">Save current as group…</button>
+        </div>
         <div class="picker-status" id="p-status"></div>
         <div class="picker-grid" id="p-grid"></div>
         <div class="picker-actions">
@@ -51,6 +58,7 @@ export function showSquadPicker(
 
     const grid = root.querySelector<HTMLElement>('#p-grid')!;
     const status = root.querySelector<HTMLElement>('#p-status')!;
+    const groupsEl = root.querySelector<HTMLElement>('#p-groups')!;
     const launchBtn = root.querySelector<HTMLButtonElement>('#p-launch')!;
 
     const squadOf = () => picks.slice(0, field);
@@ -58,6 +66,35 @@ export function showSquadPicker(
     const squadCp = () => squadOf().reduce((s, uid) => s + cpCost(costs.get(uid) ?? 0), 0);
     const isValid = () =>
       picks.length > 0 && reservesOf().length <= reserves && squadCp() <= budget;
+
+    const renderGroups = () => {
+      groupsEl.innerHTML = '';
+      if (profile.squadGroups.length === 0) {
+        groupsEl.innerHTML = '<span class="pg-empty">none saved yet</span>';
+        return;
+      }
+      for (const group of profile.squadGroups) {
+        const valid = groupValidUids(group, profile);
+        const missing = group.uids.length - valid.length;
+        const chip = fromHtml(`
+          <span class="pg-chip" title="${valid.length} units${missing > 0 ? `, ${missing} no longer owned` : ''}">
+            <button class="pg-load">${esc(group.name)} (${valid.length})</button>
+            <button class="pg-del" title="Delete group">✕</button>
+          </span>
+        `);
+        chip.querySelector<HTMLButtonElement>('.pg-load')!.onclick = () => {
+          picks = groupValidUids(group, profile);
+          render();
+        };
+        chip.querySelector<HTMLButtonElement>('.pg-del')!.onclick = () => {
+          if (!confirm(`Delete group "${group.name}"?`)) return;
+          deleteSquadGroup(profile, group.name);
+          store.save(profile);
+          renderGroups();
+        };
+        groupsEl.appendChild(chip);
+      }
+    };
 
     const render = () => {
       grid.innerHTML = '';
@@ -85,6 +122,23 @@ export function showSquadPicker(
         <span class="${overRes ? 'over' : ''}">Reserves ${reservesOf().length}/${reserves}</span>
       `;
       launchBtn.disabled = !isValid();
+    };
+
+    root.querySelector<HTMLButtonElement>('#p-savegroup')!.onclick = () => {
+      if (picks.length === 0) {
+        alert('Muster some units first, then save them as a group.');
+        return;
+      }
+      const suggested = profile.squadGroups.length > 0 ? '' : 'Strike Team';
+      const name = prompt('Name this squad group:', suggested);
+      if (name === null) return;
+      const trimmed = name.trim();
+      if (!trimmed) return;
+      const exists = profile.squadGroups.some((g) => g.name === trimmed);
+      if (exists && !confirm(`Overwrite the existing group "${trimmed}"?`)) return;
+      upsertSquadGroup(profile, trimmed, picks);
+      store.save(profile);
+      renderGroups();
     };
 
     root.querySelector<HTMLButtonElement>('#p-auto')!.onclick = () => {
@@ -115,6 +169,7 @@ export function showSquadPicker(
       resolve({ squadUids: squadOf(), reserveUids: reservesOf() });
     };
 
+    renderGroups();
     render();
     showOverlay(root);
   });
