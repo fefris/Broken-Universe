@@ -50,6 +50,7 @@ export function createBattle(config: BattleConfig): World {
     })),
     projectiles: [],
     spawnZones: config.mapDef.spawnZones,
+    portals: config.mapDef.portals ?? [],
     events: [],
     grid: new SpatialGrid(config.mapDef.map.widthMeters, config.mapDef.map.heightMeters),
     durationTicks,

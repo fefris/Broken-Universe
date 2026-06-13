@@ -164,6 +164,8 @@ export interface PendingAttack {
   provinceId: string;
   /** Attacking commander count. */
   strength: number;
+  /** Enemy-owned territory the assault crosses in from (sets the battle entry portal). */
+  fromProvinceId: string;
 }
 
 export interface CampaignState {
@@ -196,6 +198,20 @@ export function attackTargets(state: CampaignState): ProvinceDef[] {
     if (state.owners[p.id] === 'player') return false;
     return p.adj.some((a) => state.owners[a] === 'player');
   });
+}
+
+/** Player-owned territories bordering `targetId` — the borders you may attack from. */
+export function attackSources(state: CampaignState, targetId: string): ProvinceDef[] {
+  return provinceDef(targetId)
+    .adj.filter((a) => state.owners[a] === 'player')
+    .map(provinceDef);
+}
+
+/** Compass direction (radians, y-down, matching battlefield space) from one province to another. */
+export function provinceDirection(fromId: string, toId: string): number {
+  const from = provinceDef(fromId);
+  const to = provinceDef(toId);
+  return Math.atan2(to.y - from.y, to.x - from.x);
 }
 
 /** Credits collected when a turn ends. */
@@ -272,7 +288,9 @@ export function advanceTurn(state: CampaignState): void {
   if (rng.next() < 0.55) {
     const target = frontier[rng.int(0, frontier.length - 1)]!;
     const strength = rng.int(3, 5);
-    state.pendingAttack = { provinceId: target.id, strength };
+    const enemyNeighbours = target.adj.filter((a) => state.owners[a] === 'enemy');
+    const fromProvinceId = enemyNeighbours[rng.int(0, enemyNeighbours.length - 1)] ?? target.id;
+    state.pendingAttack = { provinceId: target.id, strength, fromProvinceId };
     log(state, `Turn ${state.turn}: Dominion forces mass against ${target.name}.`);
   }
 }

@@ -3,6 +3,7 @@ import {
   type CampaignState,
   HOME_PROVINCE,
   PROVINCES,
+  attackSources,
   attackTargets,
   delegateHoldChance,
   provinceDef,
@@ -24,9 +25,16 @@ import { POINTS_PER_RANK, heroXpForRank } from '../meta/xp';
 import { esc, fromHtml, showOverlay } from './dom';
 import { renderGarage } from './garage';
 import { type IconName, icon } from './icons';
+import {
+  type Site,
+  borderMidpoint,
+  polygonPoints,
+  roundedRectBoundary,
+  voronoiCells,
+} from './territory';
 
 export type HubAction =
-  | { kind: 'attack'; provinceId: string }
+  | { kind: 'attack'; provinceId: string; fromProvinceId: string }
   | { kind: 'defend' }
   | { kind: 'delegate' }
   | { kind: 'skip' }
@@ -133,35 +141,55 @@ function renderMap(
 ): void {
   const targets = new Set(attackTargets(campaign).map((p) => p.id));
   const pending = campaign.pendingAttack;
+  const owners = campaign.owners;
 
-  const edges: string[] = [];
+  // Filled territory regions: Voronoi cells from the province centroids.
+  const boundary = roundedRectBoundary(1.5, 1.5, 97, 97, 9);
+  const sites: Site[] = PROVINCES.map((p) => ({ id: p.id, x: p.x, y: p.y }));
+  const cells = voronoiCells(sites, boundary);
+
+  const polys = PROVINCES.map((p) => {
+    const cls = [
+      'territory',
+      `own-${owners[p.id]}`,
+      targets.has(p.id) ? 'target' : '',
+      pending?.provinceId === p.id ? 'threatened' : '',
+    ].join(' ');
+    return `<polygon class="${cls}" data-id="${p.id}" points="${polygonPoints(cells.get(p.id) ?? [])}" vector-effect="non-scaling-stroke" />`;
+  }).join('');
+
+  // One portal marker on each shared border (a crossing between two territories).
   const seen = new Set<string>();
+  const portals: string[] = [];
   for (const p of PROVINCES) {
     for (const a of p.adj) {
       const key = [p.id, a].sort().join('|');
       if (seen.has(key)) continue;
       seen.add(key);
-      const q = provinceDef(a);
-      edges.push(`<line x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" class="map-edge" />`);
+      const mid = borderMidpoint(p, provinceDef(a));
+      const playerHeld = (owners[p.id] === 'player') !== (owners[a] === 'player');
+      const hostileId = owners[p.id] === 'player' ? a : p.id;
+      const friendId = owners[p.id] === 'player' ? p.id : a;
+      const isThreat =
+        !!pending &&
+        ((pending.provinceId === p.id && pending.fromProvinceId === a) ||
+          (pending.provinceId === a && pending.fromProvinceId === p.id));
+      const cls = ['portal', playerHeld ? 'contested' : '', isThreat ? 'threat' : ''].join(' ');
+      portals.push(
+        `<div class="${cls}" style="left:${mid.x}%;top:${mid.y}%" data-target="${hostileId}" data-from="${friendId}"></div>`,
+      );
     }
   }
 
   const nodes = PROVINCES.map((p) => {
-    const owner = campaign.owners[p.id]!;
-    const classes = [
-      'map-node',
-      `own-${owner}`,
-      targets.has(p.id) ? 'target' : '',
-      pending?.provinceId === p.id ? 'threatened' : '',
-    ].join(' ');
     const badge = p.bonus
       ? `<div class="map-badge">${icon(BONUS_ICON[p.bonus], { size: 10 })}${p.bonus}</div>`
       : '';
     const star =
       p.id === HOME_PROVINCE || p.bonus === 'hq' ? '<span class="map-star">★</span>' : '';
     return `
-      <div class="${classes}" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%">
-        <div class="map-dot">${icon(FACTION_ICON[owner], { size: 20 })}</div>
+      <div class="map-node own-${owners[p.id]}" data-id="${p.id}" style="left:${p.x}%;top:${p.y}%">
+        <div class="map-dot">${icon(FACTION_ICON[owners[p.id]!], { size: 16 })}</div>
         <div class="map-label">${esc(p.name)}${star}</div>
         ${badge}
       </div>`;
@@ -176,18 +204,19 @@ function renderMap(
   const view = fromHtml(`
     <div class="map-wrap">
       <div class="map-area">
-        <svg class="map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">${edges.join('')}</svg>
+        <svg class="map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">${polys}</svg>
+        <div class="map-portals">${portals.join('')}</div>
         ${nodes}
       </div>
       <div class="map-side">
         <div id="map-detail" class="map-detail panel frame">
-          <p class="hint">Select a hostile province bordering Concord territory to plan an assault.</p>
+          <p class="hint">Select a hostile territory bordering Concord land, then choose a portal to assault through.</p>
         </div>
         ${
           pending
             ? `<div class="map-alert">
                 <div class="map-alert-title">${icon('target')} ${esc(provinceDef(pending.provinceId).name)} under attack</div>
-                <p>Dominion strike force: <b>${pending.strength}</b> commanders. Garrison: <b>${provinceDef(pending.provinceId).garrison}</b>.</p>
+                <p>The Dominion crosses from <b>${esc(provinceDef(pending.fromProvinceId).name)}</b> — strike force <b>${pending.strength}</b> vs garrison <b>${provinceDef(pending.provinceId).garrison}</b>.</p>
                 <button id="btn-defend" class="big">${icon('defend')} Lead the defense</button>
                 <button id="btn-delegate" class="secondary">Delegate (${Math.round(delegateHoldChance(campaign) * 100)}% hold)</button>
               </div>`
@@ -199,27 +228,63 @@ function renderMap(
   `);
 
   const detail = view.querySelector<HTMLElement>('#map-detail')!;
+
+  const selectProvince = (id: string): void => {
+    for (const el of view.querySelectorAll('.territory.selected')) el.classList.remove('selected');
+    for (const el of view.querySelectorAll('.portal.active')) el.classList.remove('active');
+    view.querySelector(`.territory[data-id="${id}"]`)?.classList.add('selected');
+
+    const def = provinceDef(id);
+    const owner = owners[id]!;
+    const attackable = targets.has(id);
+    const sources = attackSources(campaign, id);
+    const ownerCls = owner === 'player' ? 'cyan' : 'bad';
+    const bonusChip = def.bonus
+      ? `<span class="chip amber">${icon(BONUS_ICON[def.bonus], { size: 12 })}${def.bonus}</span>`
+      : '';
+    const action = attackable
+      ? `<p class="hint">Assault through a border portal:</p>
+         <div class="atk-sources">${sources
+           .map(
+             (s, i) =>
+               `<button ${i === 0 ? 'id="btn-attack" ' : ''}class="big atk-src" data-src="${s.id}">${icon('attack', { size: 14 })} From ${esc(s.name)}</button>`,
+           )
+           .join('')}</div>`
+      : `<p class="hint">${owner === 'player' ? 'Friendly territory.' : 'No friendly border — push the front line closer.'}</p>`;
+    detail.innerHTML = `
+      <h3>${esc(def.name)}</h3>
+      <div class="map-detail-meta">
+        <span class="chip ${ownerCls}">${icon(FACTION_ICON[owner], { size: 12 })}${FACTION_LABELS[owner]}</span>
+        <span class="chip">${icon('credits', { size: 12 })}${def.income} cr</span>
+        <span class="chip">${icon('cp', { size: 12 })}${def.garrison} garrison</span>
+        ${bonusChip}
+      </div>
+      ${action}
+    `;
+
+    if (attackable) {
+      for (const portal of view.querySelectorAll(`.portal.contested[data-target="${id}"]`)) {
+        portal.classList.add('active');
+      }
+      for (const btn of detail.querySelectorAll<HTMLButtonElement>('.atk-src')) {
+        btn.onclick = () =>
+          done({ kind: 'attack', provinceId: id, fromProvinceId: btn.dataset.src! });
+      }
+    }
+  };
+
+  for (const poly of view.querySelectorAll<SVGElement>('.territory')) {
+    poly.addEventListener('click', () => selectProvince(poly.dataset.id!));
+  }
   for (const node of view.querySelectorAll<HTMLElement>('.map-node')) {
-    node.onclick = () => {
-      const def = provinceDef(node.dataset.id!);
-      const owner = campaign.owners[def.id]!;
-      const attackable = targets.has(def.id);
-      const ownerCls = owner === 'player' ? 'cyan' : 'bad';
-      const bonusChip = def.bonus
-        ? `<span class="chip amber">${icon(BONUS_ICON[def.bonus], { size: 12 })}${def.bonus}</span>`
-        : '';
-      detail.innerHTML = `
-        <h3>${esc(def.name)}</h3>
-        <div class="map-detail-meta">
-          <span class="chip ${ownerCls}">${icon(FACTION_ICON[owner], { size: 12 })}${FACTION_LABELS[owner]}</span>
-          <span class="chip">${icon('credits', { size: 12 })}${def.income} cr</span>
-          <span class="chip">${icon('cp', { size: 12 })}${def.garrison} garrison</span>
-          ${bonusChip}
-        </div>
-        ${attackable ? `<button id="btn-attack" class="big">${icon('attack')} Launch assault</button>` : `<p class="hint">${owner === 'player' ? 'Friendly territory.' : 'No friendly border — push the front line closer.'}</p>`}
-      `;
-      const attackBtn = detail.querySelector<HTMLButtonElement>('#btn-attack');
-      if (attackBtn) attackBtn.onclick = () => done({ kind: 'attack', provinceId: def.id });
+    node.onclick = () => selectProvince(node.dataset.id!);
+  }
+  for (const portal of view.querySelectorAll<HTMLElement>('.portal.contested')) {
+    portal.onclick = () => {
+      const target = portal.dataset.target!;
+      if (targets.has(target)) {
+        done({ kind: 'attack', provinceId: target, fromProvinceId: portal.dataset.from! });
+      }
     };
   }
 

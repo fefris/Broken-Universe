@@ -209,13 +209,107 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  z-index: 0;
 }
 
-/* Supply lines — dim hairlines linking provinces. */
-.map-edge {
-  stroke: rgba(57, 70, 90, 0.55);
-  stroke-width: 0.4;
-  stroke-dasharray: 1.5 1.5;
+/* ---------- Territory regions (filled Voronoi cells) ---------------------- */
+.territory {
+  fill: var(--panel-2);
+  stroke: #0a0e13;
+  stroke-width: 1.4px;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 120ms ease, filter 120ms ease;
+}
+.territory.own-player {
+  fill: rgba(61, 155, 255, 0.28);
+}
+.territory.own-enemy {
+  fill: rgba(255, 82, 82, 0.26);
+}
+.territory.own-brood {
+  fill: rgba(143, 211, 90, 0.24);
+}
+.territory:hover {
+  filter: brightness(1.25);
+}
+.territory.selected {
+  stroke: var(--ink);
+  stroke-width: 2.2px;
+  filter: brightness(1.3);
+}
+/* Attackable hostile territory — amber rim. */
+.territory.target {
+  stroke: var(--accent);
+  stroke-width: 2px;
+}
+/* Territory under Dominion attack — pulsing red. */
+.territory.threatened {
+  animation: territory-threat 1.1s ease-in-out infinite alternate;
+}
+@keyframes territory-threat {
+  from {
+    stroke: #a04050;
+  }
+  to {
+    stroke: #ff6a6a;
+    stroke-width: 2.4px;
+  }
+}
+
+/* ---------- Border portals (deploy gates between territories) ------------- */
+.map-portals {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.portal {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--panel-raised);
+  border: 1.5px solid var(--edge-hi);
+  box-shadow: var(--bevel-inset);
+  opacity: 0.6;
+}
+/* A crossing between your land and a hostile territory — clickable amber gate. */
+.portal.contested {
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 1;
+  border-color: var(--accent);
+  background: linear-gradient(160deg, rgba(255, 177, 66, 0.5), var(--panel-2));
+  box-shadow: var(--bevel-inset), 0 0 6px rgba(255, 177, 66, 0.5);
+}
+.portal.contested:hover {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.25);
+}
+/* Highlighted: the selected target's attack portals. */
+.portal.active {
+  animation: portal-ready 0.9s ease-in-out infinite alternate;
+}
+@keyframes portal-ready {
+  from {
+    box-shadow: var(--bevel-inset), 0 0 6px rgba(255, 177, 66, 0.5);
+  }
+  to {
+    box-shadow: var(--bevel-inset), 0 0 16px rgba(255, 177, 66, 1);
+  }
+}
+/* The border the Dominion is crossing in from — red. */
+.portal.threat {
+  border-color: var(--bad);
+  background: linear-gradient(160deg, rgba(255, 90, 90, 0.55), var(--panel-2));
+  box-shadow: var(--bevel-inset), 0 0 10px rgba(255, 90, 90, 0.7);
+  opacity: 1;
+}
+
+/* Stacked attack-source buttons in the detail panel. */
+.atk-sources {
+  display: flex;
+  flex-direction: column;
 }
 
 .map-node {
@@ -234,8 +328,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   background: var(--panel-raised);
   border: 1px solid var(--line);
   box-shadow: var(--bevel-inset);

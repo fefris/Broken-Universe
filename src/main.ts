@@ -201,6 +201,8 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
           seed: deriveSeed(campaign.seed, campaign.turn * 31 + provinceIndex),
           squadUids: pick.squadUids,
           reserveUids,
+          targetProvinceId: def.id,
+          fromProvinceId: action.fromProvinceId,
         },
         def.garrison >= 5 ? 'hard' : 'normal',
       );
@@ -232,6 +234,8 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
           seed: deriveSeed(campaign.seed, campaign.turn * 53),
           squadUids: pick.squadUids,
           reserveUids,
+          targetProvinceId: pending.provinceId,
+          fromProvinceId: pending.fromProvinceId,
         },
         'normal',
       );

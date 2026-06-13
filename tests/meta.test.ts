@@ -141,6 +141,8 @@ describe('battle outcome', () => {
         seed: 9,
         squadUids: profile.lastSquad,
         reserveUids: [],
+        targetProvinceId: 'crossroads',
+        fromProvinceId: 'verdant',
       },
       profile,
       db,
@@ -179,6 +181,8 @@ describe('battle outcome', () => {
         seed: 9,
         squadUids: [veteran.uid],
         reserveUids: [],
+        targetProvinceId: 'crossroads',
+        fromProvinceId: 'verdant',
       },
       profile,
       db,
@@ -203,7 +207,7 @@ describe('campaign', () => {
     const state = newCampaign(7);
     resolvePlayerAttack(state, 'crossroads', true);
     expect(state.owners.crossroads).toBe('player');
-    state.pendingAttack = { provinceId: 'bastion', strength: 4 };
+    state.pendingAttack = { provinceId: 'bastion', strength: 4, fromProvinceId: 'verdant' };
     resolveDefense(state, false);
     expect(campaignResult(state)).toBe('defeat');
 
@@ -226,7 +230,7 @@ describe('campaign', () => {
   it('income and delegate odds are sane', () => {
     const state = newCampaign(7);
     expect(turnIncome(state)).toBe(50 + 50 + 80 + 30); // verdant + terrace + bastion + hq bonus
-    state.pendingAttack = { provinceId: 'bastion', strength: 5 };
+    state.pendingAttack = { provinceId: 'bastion', strength: 5, fromProvinceId: 'verdant' };
     const odds = delegateHoldChance(state);
     expect(odds).toBeGreaterThan(0.1);
     expect(odds).toBeLessThan(0.9);

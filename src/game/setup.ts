@@ -1,10 +1,13 @@
 import type { ContentDB } from '../content/db';
 import type { ResolvedUnit } from '../content/schema';
+import { provinceDirection } from '../meta/campaign';
 import { type Profile, ownedToDesign } from '../meta/profile';
 import { fieldCap, healthMult } from '../meta/rules';
 import { PLAYER_SQUAD } from '../meta/starterArmy';
 import { unitLevel } from '../meta/xp';
-import { buildAshfallCrossing } from '../sim/map/maps';
+import { mapForProvince, randomMap } from '../sim/map/library';
+import { resolveSpawnZones } from '../sim/map/maps';
+import { createRng } from '../sim/rng';
 import { ATTACKER, DEFENDER, type Team, otherTeam } from '../sim/types';
 import { resolveUnit } from '../sim/unitStats';
 import type { BattleConfig, CommanderSetup } from '../sim/world';
@@ -178,9 +181,14 @@ export function buildBattleConfig(options: BattleOptions, db: ContentDB): Battle
   addAi(ATTACKER, options.attackerCommanders, 'Strike');
   addAi(DEFENDER, options.defenderCommanders, 'Guard');
 
+  // Skirmish: a random battlefield, attacker entering from a random border.
+  const rng = createRng(options.seed);
+  const mapDef = randomMap(rng);
+  mapDef.spawnZones = resolveSpawnZones(mapDef, rng.range(-Math.PI, Math.PI));
+
   return {
     seed: options.seed,
-    mapDef: buildAshfallCrossing(),
+    mapDef,
     commanders,
     resolve: (designId) => db.resolved(designId),
   };
@@ -218,6 +226,10 @@ export interface CampaignBattleContext {
   /** Owned-unit uids: fielded squad and reserve pool. */
   squadUids: string[];
   reserveUids: string[];
+  /** The contested province — selects the battlefield. */
+  targetProvinceId: string;
+  /** Territory the invading (ATTACKER) force crosses in from — selects the entry portal. */
+  fromProvinceId: string;
 }
 
 /**
@@ -282,9 +294,15 @@ export function buildCampaignBattleConfig(
     }
   }
 
+  // The battlefield is the contested province's map; the invading ATTACKER force
+  // enters through the portal facing the territory it crossed in from.
+  const mapDef = mapForProvince(ctx.targetProvinceId);
+  const attackerFacing = provinceDirection(ctx.targetProvinceId, ctx.fromProvinceId);
+  mapDef.spawnZones = resolveSpawnZones(mapDef, attackerFacing);
+
   return {
     seed: ctx.seed,
-    mapDef: buildAshfallCrossing(),
+    mapDef,
     commanders,
     resolve: (designId) => ownedStats.get(designId) ?? db.resolved(designId),
   };

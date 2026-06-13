@@ -1,5 +1,6 @@
 import type { ResolvedUnit } from '../content/schema';
 import type { SimEvent } from './events';
+import type { Portal } from './map/maps';
 import type { Tilemap } from './map/tilemap';
 import type { Rng } from './rng';
 import type { SpatialGrid } from './spatial';
@@ -128,6 +129,8 @@ export interface World {
   pocs: PoC[];
   projectiles: Projectile[];
   spawnZones: SpawnZone[];
+  /** All deploy gates on the battlefield (the two active ones are in spawnZones). */
+  portals: Portal[];
   /** Events emitted during the current tick; drained by the renderer/tests. */
   events: SimEvent[];
   grid: SpatialGrid;

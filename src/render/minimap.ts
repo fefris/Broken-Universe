@@ -43,6 +43,11 @@ export class Minimap {
       }
     }
     terrain.rect(0, 0, WIDTH, this.heightPx).stroke({ width: 1.5, color: 0x4a5564 });
+    for (const portal of world.portals) {
+      terrain
+        .rect(portal.pos.x * this.k - 1.5, portal.pos.y * this.k - 1.5, 3, 3)
+        .fill({ color: 0x9fb0c4, alpha: 0.55 });
+    }
     this.container.addChild(terrain, this.dynamic);
   }
 

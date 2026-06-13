@@ -11,7 +11,7 @@ import type { PoC, UnitState, World } from '../sim/types';
 import { Camera } from './camera';
 import { hpColor, teamColor } from './colors';
 import { FxLayer } from './fx';
-import { drawPocModel, drawSpawnZoneModel, drawTerrainModel } from './mapModels';
+import { drawPocModel, drawPortalModel, drawSpawnZoneModel, drawTerrainModel } from './mapModels';
 import { Minimap } from './minimap';
 import { type UnitModel, buildUnitModel } from './unitModels';
 
@@ -64,6 +64,7 @@ export class GameRenderer {
     // Terrain baked once.
     const terrain = new Graphics();
     drawTerrainModel(terrain, world);
+    for (const portal of world.portals) drawPortalModel(terrain, portal);
     for (const zone of world.spawnZones) drawSpawnZoneModel(terrain, zone);
 
     this.pocGraphics = new Graphics();

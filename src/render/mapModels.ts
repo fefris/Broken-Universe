@@ -1,5 +1,6 @@
 import type { Graphics } from 'pixi.js';
 import { TILE_SIZE } from '../sim/constants';
+import type { Portal } from '../sim/map/maps';
 import { TILE_BLOCKED, TILE_OPEN, TILE_SLOW } from '../sim/map/tilemap';
 import { type PoC, type SpawnZone, type World, otherTeam } from '../sim/types';
 import {
@@ -81,6 +82,22 @@ export function drawTerrainModel(g: Graphics, world: World): void {
         alpha: 0.28,
       });
     }
+  }
+}
+
+/** A neutral deploy gate marker (the two active ones are overdrawn by spawn zones). */
+export function drawPortalModel(g: Graphics, portal: Portal): void {
+  const color = 0x9fb0c4;
+  const { x, y } = portal.pos;
+  g.circle(x, y, 5).stroke({ width: 0.4, color, alpha: 0.4 });
+  g.circle(x, y, 2).fill({ color, alpha: 0.22 });
+  // Two chevron ticks pointing inward (away from the map edge).
+  const inward = portal.facing + Math.PI;
+  for (const d of [-0.5, 0.5]) {
+    const a = inward + d;
+    g.moveTo(x + Math.cos(inward) * 2.5, y + Math.sin(inward) * 2.5)
+      .lineTo(x + Math.cos(a) * 6, y + Math.sin(a) * 6)
+      .stroke({ width: 0.35, color, alpha: 0.35 });
   }
 }
 
