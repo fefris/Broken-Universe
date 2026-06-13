@@ -1,6 +1,6 @@
 import type { ResolvedUnit } from '../content/schema';
 import type { Command } from './commands';
-import { BATTLE_DURATION_TICKS, REINFORCE_CUTOFF_TICKS, secondsToTicks } from './constants';
+import { BATTLE_DURATION_TICKS, secondsToTicks } from './constants';
 import type { MapDef } from './map/maps';
 import { findPath } from './map/pathfinding';
 import { createRng } from './rng';
@@ -53,10 +53,13 @@ export function createBattle(config: BattleConfig): World {
     events: [],
     grid: new SpatialGrid(config.mapDef.map.widthMeters, config.mapDef.map.heightMeters),
     durationTicks,
-    reinforceCutoffTick:
-      durationTicks === BATTLE_DURATION_TICKS
-        ? REINFORCE_CUTOFF_TICKS
-        : Math.max(0, durationTicks - secondsToTicks(180)),
+    // Reinforcements close for the final stretch — a fixed 3 minutes on a full
+    // battle, but proportionally shorter on briefer ones so short battles still
+    // allow most of their length for deploying waves.
+    reinforceCutoffTick: Math.max(
+      0,
+      durationTicks - Math.min(secondsToTicks(180), Math.floor(durationTicks * 0.2)),
+    ),
     result: null,
     nextProjectileId: 0,
   };

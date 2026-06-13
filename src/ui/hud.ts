@@ -3,8 +3,9 @@ import type { Controls } from '../input/controls';
 import { ticksToSeconds } from '../sim/constants';
 import { canDeploy } from '../sim/systems/reserves';
 import { ATTACKER, type Team, type World } from '../sim/types';
-import { esc } from './dom';
+import { esc, hideOverlay } from './dom';
 import { divisionIcon, icon } from './icons';
+import { showWavePicker } from './wavePicker';
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -33,6 +34,10 @@ export class Hud {
   private lastPocSig = '';
   private squadSlots = new Map<number, { root: HTMLElement; fill: HTMLElement }>();
   private ended = false;
+  /** Wave reinforcement bookkeeping: detect the group being wiped, and avoid
+   *  re-opening the picker while it's already up. */
+  private lastAlive = -1;
+  private wavePickerOpen = false;
 
   constructor(
     private readonly runner: BattleRunner,
@@ -50,6 +55,8 @@ export class Hud {
     this.lastReserveSig = '';
     this.lastPocSig = '';
     this.ended = false;
+    this.lastAlive = -1;
+    this.wavePickerOpen = false;
     this.decorateChrome();
     const spectating = playerCommanderId === null;
     this.squadBar.style.display = spectating ? 'none' : 'flex';
@@ -76,12 +83,12 @@ export class Hud {
       this.pocStrip.insertAdjacentElement('beforebegin', sep);
     }
 
-    // --- reserves: uppercase header with a target glyph above the buttons ---
+    // --- reserves: uppercase header with a shield glyph above the deploy button ---
     if (!this.reservePanel.dataset.hudDecorated) {
       this.reservePanel.dataset.hudDecorated = '1';
       const head = document.createElement('div');
       head.className = 'reserve-head';
-      head.innerHTML = `${icon('target', { size: 14 })}<span>Reserves</span>`;
+      head.innerHTML = `${icon('defend', { size: 14 })}<span>Reinforcements</span>`;
       this.reserveButtons.insertAdjacentElement('beforebegin', head);
     }
 
@@ -183,41 +190,69 @@ export class Hud {
     if (this.playerCommanderId === null) return;
     const commander = world.commanders[this.playerCommanderId];
     if (!commander) return;
-    const counts = new Map<string, number>();
-    for (const id of commander.reserves) counts.set(id, (counts.get(id) ?? 0) + 1);
+
+    const alive = commander.squad.filter((id) => world.units[id]?.alive).length;
+    const reserveCount = commander.reserves.length;
     const deployable = canDeploy(world, commander);
-    const sig = `${[...counts.entries()].map(([k, v]) => `${k}:${v}`).join(',')}|${deployable}`;
+    const cutoffPassed = world.tick >= world.reinforceCutoffTick;
+    const wiped = alive === 0;
+
+    // The defining behavior: when your fielded group is wiped, surface the next
+    // wave automatically (once). The battle keeps running underneath.
+    if (
+      wiped &&
+      this.lastAlive > 0 &&
+      reserveCount > 0 &&
+      deployable &&
+      !this.wavePickerOpen &&
+      !world.result
+    ) {
+      void this.openWavePicker();
+    }
+    this.lastAlive = alive;
+
+    const sig = `${alive}|${commander.squadCap}|${reserveCount}|${deployable}|${cutoffPassed}`;
     if (sig === this.lastReserveSig) return;
     this.lastReserveSig = sig;
 
     this.reserveButtons.innerHTML = '';
-    for (const [designId, count] of counts) {
-      const sample = world.units.find((u) => u.stats.designId === designId);
-      const name = sample?.stats.name ?? designId.replace(/^d_/, '');
-      const btn = document.createElement('button');
-      btn.className = 'reserve-btn cut-sm';
-      // division glyph + name + a tabular amber count, e.g. "Striker x3"
-      const glyph = sample ? divisionIcon(sample.stats.division) : '';
-      btn.innerHTML = `${glyph}<span>${esc(name)}</span><span class="rb-count">x${count}</span>`;
-      btn.disabled = !deployable;
-      btn.onclick = () => {
-        if (this.playerCommanderId !== null) {
-          this.runner.enqueue({
-            type: 'deploy',
-            commanderId: this.playerCommanderId,
-            designId,
-          });
-        }
-      };
-      this.reserveButtons.appendChild(btn);
+    const btn = document.createElement('button');
+    btn.className = 'reserve-btn cut-sm deploy-wave';
+    btn.classList.toggle('urgent', wiped && reserveCount > 0 && !cutoffPassed);
+    btn.innerHTML = `${icon('defend', { size: 14 })}<span>${wiped ? 'Group lost — reinforce' : 'Deploy next group'}</span>`;
+    btn.disabled = !deployable;
+    btn.onclick = () => void this.openWavePicker();
+    this.reserveButtons.appendChild(btn);
+
+    this.reserveInfo.textContent = cutoffPassed
+      ? 'reinforcements closed'
+      : `field ${alive}/${commander.squadCap} · ${reserveCount} in reserve`;
+  }
+
+  /** Open the non-blocking wave picker and deploy whatever the player chooses. */
+  private async openWavePicker(): Promise<void> {
+    if (this.playerCommanderId === null || this.wavePickerOpen) return;
+    this.wavePickerOpen = true;
+    const ids = await showWavePicker(this.runner, this.playerCommanderId);
+    this.wavePickerOpen = false;
+    for (const id of ids) {
+      this.runner.enqueue({
+        type: 'deploy',
+        commanderId: this.playerCommanderId,
+        designId: id,
+      });
     }
-    const alive = commander.squad.filter((id) => world.units[id]?.alive).length;
-    this.reserveInfo.textContent = `squad ${alive}/${commander.squadCap} · reserves ${commander.reserves.length}`;
+    this.lastReserveSig = ''; // force the reserve panel to refresh
   }
 
   private showEnd(world: World): void {
     if (!world.result) return;
     this.ended = true;
+    // Close the wave picker if the battle ended while it was open.
+    if (this.wavePickerOpen) {
+      hideOverlay();
+      this.wavePickerOpen = false;
+    }
     const { winner, reason } = world.result;
     let title: string;
     let cls: string;

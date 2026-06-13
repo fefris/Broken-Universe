@@ -14,11 +14,7 @@ page.on('console', (m) => {
   if (m.type() === 'error' && !m.text().includes('404')) errors.push(m.text());
 });
 page.on('pageerror', (e) => errors.push(String(e)));
-page.on('dialog', async (d) => {
-  // Name the group on the save prompt; accept confirms.
-  if (d.type() === 'prompt') await d.accept('Alpha Strike');
-  else await d.accept();
-});
+page.on('dialog', (d) => d.accept());
 
 await page.goto('http://localhost:5173/?quick=1', { waitUntil: 'networkidle' });
 await page.evaluate(() => localStorage.clear());
@@ -33,9 +29,12 @@ await page.click('#btn-attack');
 await page.waitForSelector('#p-grid', { timeout: 5000 });
 await page.waitForTimeout(200);
 
-// Capture the auto-restored muster, save it as a group.
+// Capture the auto-restored muster, save it as a group (inline form flow).
 const initialPicks = await page.evaluate(() => document.querySelectorAll('.p-card.picked').length);
 await page.click('#p-savegroup');
+await page.waitForSelector('#p-groupname', { state: 'visible', timeout: 5000 });
+await page.fill('#p-groupname', 'Alpha Strike');
+await page.click('#p-groupsave');
 await page.waitForTimeout(200);
 await page.screenshot({ path: `${OUT}/g1-saved.png` });
 const groupSavedInProfile = await page.evaluate(() => {

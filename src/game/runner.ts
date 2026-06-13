@@ -1,5 +1,6 @@
 import { AICommander } from '../ai/commander';
 import { DIFFICULTIES, type DifficultyLevel } from '../ai/difficulty';
+import type { ResolvedUnit } from '../content/schema';
 import type { Command } from '../sim/commands';
 import type { SimEvent } from '../sim/events';
 import { deriveSeed } from '../sim/rng';
@@ -30,6 +31,11 @@ export class BattleRunner {
 
   enqueue(command: Command): void {
     this.pending.push(command);
+  }
+
+  /** Baked battle stats for a design/owned-unit id (for reinforcement UI). */
+  statsFor(designId: string): ResolvedUnit {
+    return this.resolve(designId);
   }
 
   /** Advance one tick; returns the events the tick produced. */

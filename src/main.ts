@@ -182,7 +182,11 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
       const faction = campaign.owners[action.provinceId] === 'brood' ? 'brood' : 'enemy';
       const pick = await showSquadPicker(profile, db, `Assault on ${def.name}`, store);
       if (!pick) continue;
-      profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
+      // The whole rest of the roster is the reinforcement pool for later waves.
+      const reserveUids = profile.units
+        .map((u) => u.uid)
+        .filter((uid) => !pick.squadUids.includes(uid));
+      profile.lastSquad = [...pick.squadUids];
       const provinceIndex = PROVINCES.findIndex((p) => p.id === def.id);
       // You bring matching allied strength; your squad is the edge.
       const won = await runCampaignBattle(
@@ -196,7 +200,7 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
           allyCommanders: def.garrison,
           seed: deriveSeed(campaign.seed, campaign.turn * 31 + provinceIndex),
           squadUids: pick.squadUids,
-          reserveUids: pick.reserveUids,
+          reserveUids,
         },
         def.garrison >= 5 ? 'hard' : 'normal',
       );
@@ -212,7 +216,10 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
       const def = provinceDef(pending.provinceId);
       const pick = await showSquadPicker(profile, db, `Defense of ${def.name}`, store);
       if (!pick) continue;
-      profile.lastSquad = [...pick.squadUids, ...pick.reserveUids];
+      const reserveUids = profile.units
+        .map((u) => u.uid)
+        .filter((uid) => !pick.squadUids.includes(uid));
+      profile.lastSquad = [...pick.squadUids];
       const won = await runCampaignBattle(
         app,
         profile,
@@ -224,7 +231,7 @@ async function runCampaign(app: Application, profile: Profile, store: ProfileSto
           allyCommanders: Math.max(1, def.garrison - 1),
           seed: deriveSeed(campaign.seed, campaign.turn * 53),
           squadUids: pick.squadUids,
-          reserveUids: pick.reserveUids,
+          reserveUids,
         },
         'normal',
       );

@@ -381,3 +381,25 @@
   color: var(--ink-dim);
   text-align: center;
 }
+
+/* Wave reinforcement: full-width deploy button; pulses amber when the group is lost. */
+.deploy-wave {
+  width: 100%;
+  justify-content: center;
+}
+.deploy-wave.urgent {
+  border-color: var(--accent);
+  color: var(--accent);
+  animation: reserve-pulse 1s infinite alternate;
+}
+@keyframes reserve-pulse {
+  from {
+    box-shadow: 0 0 2px rgba(255, 177, 66, 0.4);
+  }
+  to {
+    box-shadow: 0 0 13px rgba(255, 177, 66, 0.95);
+  }
+}
+.wave-picker {
+  margin: auto;
+}
